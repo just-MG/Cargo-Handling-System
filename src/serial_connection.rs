@@ -15,15 +15,18 @@ pub fn serial_connect() -> () {
         Ok(mut port) => { // If the serial port was successfully opened
             let mut serial_buf: Vec<u8> = vec![0; 1000]; // Create a buffer to store received data
             let mut received_data: Vec<u8> = Vec::new(); // Create a vector to store the received data
+            let mut color_values: Vec<i32> = Vec::new(); // Create a vector to store the color values
             loop {
                 match port.read(serial_buf.as_mut_slice()) { // Read data from the serial port into the buffer
                     Ok(t) => {
                         received_data.extend_from_slice(&serial_buf[..t]); // Append the received data to the vector
-                        if received_data.contains(&124) { // Check if the vector contains the ASCII character 124
+                        if color_values.len() <= 19 && color_values[0] == &123 && color_values[color_values.len()-3] == &125 { // Check if the vector does not contain more than one result
                             let result = received_data.clone(); // Save the received data to a variable
-                            for &byte in &result { // Iterate over the received data
-                                let character = byte as char; // Convert the byte to a character
-                                print!("{}", character); // Print the character
+
+                        } else {
+                            // If the vector contains more than one result, clear the vector
+                            if color_values.len() > 19 {
+                                color_values.clear();
                             }
                         }
                     },
@@ -39,4 +42,30 @@ pub fn serial_connect() -> () {
             ::std::process::exit(1); // Exit the program with a non-zero status code
         }
     }
+}
+/*
+
+*/
+fn average_color_values() -> (i32, i32, i32) {
+    (0, 0, 0)
+}
+
+fn convert_serial_color(serial: Vec<u8>) -> (i32, i32, i32) {
+    let mut color_values: Vec<i32> = Vec::new();
+    let truncated_serial = &serial[1..serial.len()-3]; // Truncate the serial vector to remove the first and last 3 values
+    let mut color: Vec<u8> = Vec::new(); // Create a vector to store the temporary color value as ASCII characters
+    for &byte in truncated_serial { // Iterate over the truncated serial vector
+        if byte != 82 && byte != 71 && byte != 66 && byte != 59 {
+            color.push(byte);
+        }
+        if byte == 59 { // If the byte is a semicolon
+            println!("-{:?}", color);
+            let color_string: String = color.iter().map(|&c| c as char).collect(); // Convert the color vector to a string
+            println!("--{:?}", color_string);
+            let color_value: i32 = color_string.parse().unwrap(); // Parse the color string as an integer
+            color_values.push(color_value); // Append the color value to the color values vector
+            color.clear(); // Clear the temporary color vectors
+        }
+    }
+    (color_values[0], color_values[1], color_values[2]) // Return the color values as a tuple
 }
