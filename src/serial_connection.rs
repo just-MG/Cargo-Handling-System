@@ -1,4 +1,4 @@
-use std::io::{self, Write};
+use std::io::{self};
 use std::time::Duration;
 
 
@@ -18,14 +18,20 @@ pub fn serial_connect() -> () {
             loop {
                 match port.read(serial_buf.as_mut_slice()) { // Read data from the serial port into the buffer
                     Ok(t) => {
-                    received_data.extend_from_slice(&serial_buf[..t]); // Append the received data to the vector
+                        received_data.extend_from_slice(&serial_buf[..t]); // Append the received data to the vector
+                        if received_data.contains(&124) { // Check if the vector contains the ASCII character 124
+                            let result = received_data.clone(); // Save the received data to a variable
+                            for &byte in &result { // Iterate over the received data
+                                let character = byte as char; // Convert the byte to a character
+                                print!("{}", character); // Print the character
+                            }
+                        }
                     },
                     Err(ref e) if e.kind() == io::ErrorKind::TimedOut => (), // If a timeout occurred, do nothing
                     Err(e) => eprintln!("{:?}", e) // If an error occurred, print the error message
                 }
-                println!("{:?}", received_data); // Print the received data
                 received_data.clear(); // Clear the received data vector
-                std::thread::sleep(Duration::from_millis(50));
+                std::thread::sleep(Duration::from_millis(500));
             }
         }
         Err(e) => { // If the serial port failed to open
