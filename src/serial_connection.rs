@@ -2,7 +2,7 @@ use std::io::{self};
 use std::time::Duration;
 
 
-pub fn serial_connect() -> () {
+pub fn serial_connect() -> ((i32, i32, i32)) {
 
     let port_name: &str = "/dev/ttyUSB0"; // Get the value of the "port" argument
     let baud_rate = 9600; // Get the value of the "baud" argument and parse it as u32
@@ -15,14 +15,25 @@ pub fn serial_connect() -> () {
         Ok(mut port) => { // If the serial port was successfully opened
             let mut serial_buf: Vec<u8> = vec![0; 1000]; // Create a buffer to store received data
             let mut received_data: Vec<u8> = Vec::new(); // Create a vector to store the received data
-            let mut color_values: Vec<i32> = Vec::new(); // Create a vector to store the color values
+            let mut color_values: Vec<Vec<i32>> = Vec::new(); // Create a vector to store the color values
             loop {
+                // println!("color_values length{:?}", color_values.len());
+                if color_values.len() >= 5 {
+                    return average_color_values(color_values)
+                }
                 match port.read(serial_buf.as_mut_slice()) { // Read data from the serial port into the buffer
                     Ok(t) => {
                         received_data.extend_from_slice(&serial_buf[..t]); // Append the received data to the vector
-                        if color_values.len() <= 19 && color_values[0] == &123 && color_values[color_values.len()-3] == &125 { // Check if the vector does not contain more than one result
+                        let result = received_data.clone();
+                        println!("result length{:?}", result.len());
+                        println!("result raw{:?}", result);
+                        if result.len() <= 19 && result[0] == 123 && result[result.len()-3] == 125 { // Check if the vector does not contain more than one result
                             let result = received_data.clone(); // Save the received data to a variable
-
+                            for &byte in &result { // Iterate over the received data
+                                let character = byte as char; // Convert the byte to a character
+                                print!("{}", character); // Print the character
+                            }
+                            color_values.push(convert_serial_color(result)); // Append the converted color values to the color values vector
                         } else {
                             // If the vector contains more than one result, clear the vector
                             if color_values.len() > 19 {
@@ -34,7 +45,7 @@ pub fn serial_connect() -> () {
                     Err(e) => eprintln!("{:?}", e) // If an error occurred, print the error message
                 }
                 received_data.clear(); // Clear the received data vector
-                std::thread::sleep(Duration::from_millis(500));
+                std::thread::sleep(Duration::from_millis(100));
             }
         }
         Err(e) => { // If the serial port failed to open
@@ -44,13 +55,22 @@ pub fn serial_connect() -> () {
     }
 }
 /*
-
+    Takes a vector of color values and returns the average color values as a tuple
 */
-fn average_color_values() -> (i32, i32, i32) {
-    (0, 0, 0)
+fn average_color_values(color_values: Vec<Vec<i32>>) -> (i32, i32, i32) {
+    let mut average_r = 0;
+    let mut average_g = 0;
+    let mut average_b = 0;
+    let length = color_values.len();
+    for vector in color_values {
+        average_r += vector[0];
+        average_g += vector[1];
+        average_b += vector[2];
+    }
+    (average_r / length as i32, average_g / length as i32, average_b / length as i32)
 }
 
-fn convert_serial_color(serial: Vec<u8>) -> (i32, i32, i32) {
+fn convert_serial_color(serial: Vec<u8>) -> Vec<i32> {
     let mut color_values: Vec<i32> = Vec::new();
     let truncated_serial = &serial[1..serial.len()-3]; // Truncate the serial vector to remove the first and last 3 values
     let mut color: Vec<u8> = Vec::new(); // Create a vector to store the temporary color value as ASCII characters
@@ -67,5 +87,5 @@ fn convert_serial_color(serial: Vec<u8>) -> (i32, i32, i32) {
             color.clear(); // Clear the temporary color vectors
         }
     }
-    (color_values[0], color_values[1], color_values[2]) // Return the color values as a tuple
+    [color_values[0], color_values[1], color_values[2]].to_vec() // Return the color values as a tuple
 }
