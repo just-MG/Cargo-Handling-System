@@ -2,7 +2,7 @@ use std::io::{self};
 use std::time::Duration;
 
 
-pub fn serial_connect() -> ((i32, i32, i32)) {
+pub fn serial_connect() -> (i32, i32, i32) {
 
     let port_name: &str = "/dev/ttyUSB0"; // Get the value of the "port" argument
     let baud_rate = 9600; // Get the value of the "baud" argument and parse it as u32
@@ -18,21 +18,21 @@ pub fn serial_connect() -> ((i32, i32, i32)) {
             let mut color_values: Vec<Vec<i32>> = Vec::new(); // Create a vector to store the color values
             loop {
                 // println!("color_values length{:?}", color_values.len());
-                if color_values.len() >= 5 {
+                if color_values.len() >= 5 { // We stop getting new data after 5 iterations
                     return average_color_values(color_values)
                 }
                 match port.read(serial_buf.as_mut_slice()) { // Read data from the serial port into the buffer
                     Ok(t) => {
                         received_data.extend_from_slice(&serial_buf[..t]); // Append the received data to the vector
                         let result = received_data.clone();
-                        println!("result length{:?}", result.len());
-                        println!("result raw{:?}", result);
+                        // println!("result length{:?}", result.len());
+                        // println!("result raw{:?}", result);
                         if result.len() <= 19 && result[0] == 123 && result[result.len()-3] == 125 { // Check if the vector does not contain more than one result
                             let result = received_data.clone(); // Save the received data to a variable
-                            for &byte in &result { // Iterate over the received data
-                                let character = byte as char; // Convert the byte to a character
-                                print!("{}", character); // Print the character
-                            }
+                            // for &byte in &result { // Iterate over the received data
+                            //     let character = byte as char; // Convert the byte to a character
+                            //     print!("{}", character); // Print the character
+                            // }
                             color_values.push(convert_serial_color(result)); // Append the converted color values to the color values vector
                         } else {
                             // If the vector contains more than one result, clear the vector
@@ -67,6 +67,7 @@ fn average_color_values(color_values: Vec<Vec<i32>>) -> (i32, i32, i32) {
         average_g += vector[1];
         average_b += vector[2];
     }
+    print!("{:?}", (average_r / length as i32, average_g / length as i32, average_b / length as i32));
     (average_r / length as i32, average_g / length as i32, average_b / length as i32)
 }
 
@@ -79,13 +80,14 @@ fn convert_serial_color(serial: Vec<u8>) -> Vec<i32> {
             color.push(byte);
         }
         if byte == 59 { // If the byte is a semicolon
-            println!("-{:?}", color);
+            // println!("-{:?}", color);
             let color_string: String = color.iter().map(|&c| c as char).collect(); // Convert the color vector to a string
-            println!("--{:?}", color_string);
+            // println!("--{:?}", color_string);
             let color_value: i32 = color_string.parse().unwrap(); // Parse the color string as an integer
             color_values.push(color_value); // Append the color value to the color values vector
             color.clear(); // Clear the temporary color vectors
         }
     }
+    
     [color_values[0], color_values[1], color_values[2]].to_vec() // Return the color values as a tuple
 }
