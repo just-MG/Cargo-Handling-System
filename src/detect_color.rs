@@ -1,5 +1,3 @@
-mod serial_connection;
-
 //Initial version 
 // fn logic(red: i32, green:i32, blue:i32) -> String {
 //     let (r, g, b): (u8, u8, u8) = (define_red(red), define_green(green), define_blue(blue));
@@ -87,7 +85,7 @@ impl ColorRange {
 }
 
 // Main logic function to determine the classification based on RGB values
-fn logic(red: i32, green: i32, blue: i32) -> String {
+pub fn logic(red: i32, green: i32, blue: i32) -> String {
     // Initialize the ranges for each color
     let red_range = ColorRange::new((50, 60), (135, 144), (145, 168));
     let green_range = ColorRange::new((60, 80), (165, 185), (220, 240));
@@ -107,8 +105,4 @@ fn logic(red: i32, green: i32, blue: i32) -> String {
     }
 }
 
-// Example main function to use the logic function
-fn main() {
-    let result = logic(55, 70, 75);  // Example call to the logic function
-    println!("{}", result);
-}
+
