@@ -17,22 +17,22 @@ pub fn serial_connect() -> (i32, i32, i32) {
             let mut received_data: Vec<u8> = Vec::new(); // Create a vector to store the received data
             let mut color_values: Vec<Vec<i32>> = Vec::new(); // Create a vector to store the color values
             loop {
-                // println!("color_values length{:?}", color_values.len());
-                if color_values.len() >= 5 { // We stop getting new data after 5 iterations
+                println!("color_values c{:?}", color_values);
+                if color_values.len() >= 10 { // We stop getting new data after 10 iterations
                     return average_color_values(color_values)
                 }
                 match port.read(serial_buf.as_mut_slice()) { // Read data from the serial port into the buffer
                     Ok(t) => {
                         received_data.extend_from_slice(&serial_buf[..t]); // Append the received data to the vector
                         let result = received_data.clone();
-                        // println!("result length{:?}", result.len());
-                        // println!("result raw{:?}", result);
+                        println!("result length{:?}", result.len());
+                        println!("result raw{:?}", result);
                         if result.len() <= 19 && result[0] == 123 && result[result.len()-3] == 125 { // Check if the vector does not contain more than one result
                             let result = received_data.clone(); // Save the received data to a variable
-                            // for &byte in &result { // Iterate over the received data
-                            //     let character = byte as char; // Convert the byte to a character
-                            //     print!("{}", character); // Print the character
-                            // }
+                            for &byte in &result { // Iterate over the received data
+                                let character = byte as char; // Convert the byte to a character
+                                print!("{}", character); // Print the character
+                            }
                             color_values.push(convert_serial_color(result)); // Append the converted color values to the color values vector
                         } else {
                             // If the vector contains more than one result, clear the vector
@@ -75,16 +75,25 @@ fn convert_serial_color(serial: Vec<u8>) -> Vec<i32> {
     let mut color_values: Vec<i32> = Vec::new();
     let truncated_serial = &serial[1..serial.len()-3]; // Truncate the serial vector to remove the first and last 3 values
     let mut color: Vec<u8> = Vec::new(); // Create a vector to store the temporary color value as ASCII characters
+    let mut negative: bool = false; // Create a boolean variable to store whether the color value is negative
     for &byte in truncated_serial { // Iterate over the truncated serial vector
-        if byte != 82 && byte != 71 && byte != 66 && byte != 59 {
+        if byte != 82 && byte != 71 && byte != 66 && byte != 59  && byte != 45{
             color.push(byte);
+        }
+        if byte == 45 { // If the byte is a hyphen
+            negative = true; // Set the negative flag to true
         }
         if byte == 59 { // If the byte is a semicolon
             // println!("-{:?}", color);
             let color_string: String = color.iter().map(|&c| c as char).collect(); // Convert the color vector to a string
             // println!("--{:?}", color_string);
             let color_value: i32 = color_string.parse().unwrap(); // Parse the color string as an integer
-            color_values.push(color_value); // Append the color value to the color values vector
+            if negative {
+                color_values.push(color_value * -1); // Append the negative color value to the color values vector
+                negative = false; // Reset the negative flag
+            } else {
+                color_values.push(color_value); // Append the color value to the color values vector
+            }
             color.clear(); // Clear the temporary color vectors
         }
     }
