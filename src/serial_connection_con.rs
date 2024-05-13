@@ -57,7 +57,9 @@ pub fn initialize_serial(tx: mpsc::Sender<(i32, i32, i32)>) -> () {
     });
 }
 
-
+/*
+TODO: Error handling - vector empty, division by zero
+*/
 fn average_color_values(color_values: Vec<Vec<i32>>) -> (i32, i32, i32) {
     let mut average_r = 0;
     let mut average_g = 0;
