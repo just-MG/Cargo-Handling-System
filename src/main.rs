@@ -2,6 +2,7 @@ mod serial_connection_con;
 mod detect_color;
 mod motors;
 use std::{sync::mpsc, thread::current};
+mod sorting;
 
 #[derive(Clone, Copy)]
 enum State {
@@ -56,6 +57,11 @@ fn main() {
 
     // Motor initialization
     // TODO: Add motor initialization here
+
+    // 'Global' variables
+    let mut bin1: Vec<i32> = Vec::new();
+    let mut bin2: Vec<i32> = Vec::new();
+    let mut bin3: Vec<i32> = Vec::new();
 
     let mut current_state = State::Ready;
     loop {
