@@ -1,7 +1,11 @@
 use std::io::{self};
 use std::time::Duration;
 
+/*
 
+REDUNDAND CODE
+
+*/
 pub fn serial_connect() -> (i32, i32, i32) {
 
     let port_name: &str = "/dev/ttyUSB0"; // Get the value of the "port" argument
@@ -67,7 +71,7 @@ fn average_color_values(color_values: Vec<Vec<i32>>) -> (i32, i32, i32) {
         average_g += vector[1];
         average_b += vector[2];
     }
-    print!("{:?}", (average_r / length as i32, average_g / length as i32, average_b / length as i32));
+    // print!("{:?}", (average_r / length as i32, average_g / length as i32, average_b / length as i32));
     (average_r / length as i32, average_g / length as i32, average_b / length as i32)
 }
 
