@@ -1,9 +1,16 @@
+#[warn(unused_mut)]
 mod serial_connection_con;
 mod detect_color;
 mod motors;
 use std::{sync::mpsc, thread::current};
 mod sorting;
 
+// Define the shared state
+struct SharedState {
+    bin_status: (Vec<i32>, Vec<i32>, Vec<i32>),
+}
+
+// Define the states with access to the shared state
 #[derive(Clone, Copy)]
 enum State {
     Ready,
@@ -13,45 +20,53 @@ enum State {
     Discarding,
     Sorting,
     Error,
-    Paused,
 }
 
-
-enum Event {
-    PowerOn,
-    DiscDetected,
-    DiscPositioned,
-    DiscAnalyzed { needed: bool },
-    Discarded,
-    Sorted,
-    OperationError,
-    Reset,
-    Pause,
-    Resume,
+// State machine struct includes the shared state
+struct StateMachine {
+    current_state: State,
+    shared_state: SharedState,
 }
 
-fn next_state(current_state: State, event: Event) -> State {
-    use State::*;
-    use Event::*;
+impl StateMachine {
+    fn new() -> Self {
+        StateMachine {
+            current_state: State::Ready,
+            shared_state: SharedState {
+                bin_status: (Vec::new(), Vec::new(), Vec::new()),
+            },
+        }
+    }
 
-    match (current_state, event) {
-        (Ready, PowerOn) | (Ready, Resume) => Detecting,
-        (Detecting, DiscDetected) => Positioning,
-        (Positioning, DiscPositioned) => Analyzing,
-        (Analyzing, DiscAnalyzed { needed }) if needed => Sorting,
-        (Analyzing, DiscAnalyzed { needed: false }) => Discarding,
-        (Discarding, Discarded) | (Sorting, Sorted) => Ready,
-        (_, OperationError) | (_, Pause) => Error,
-        (Error, Reset) => Ready,
-        _ => current_state,
+    // Transition function with access to shared state
+    fn transition(&mut self, event: Event) {
+        use State::*;
+        match (self.current_state, event) {
+            (Ready, Event::Start) => self.current_state = Detecting,
+            (Detecting, Event::DiscDetected) => {
+                // Access or modify the shared state
+                // self.shared_state.bin_status += 1;
+                self.current_state = Positioning;
+            },
+            // Other transitions...
+            _ => (),
+        }
     }
 }
 
+// Define events
+enum Event {
+    Start,
+    DiscDetected,
+    Error,
+}
+
+
 fn main() {
     // COLOR detection initialization
-    let (tx_color, rx_color) = mpsc::channel();
-    serial_connection_con::initialize_serial(tx_color); // Start the serial connection in a separate thread
-    std::thread::sleep(std::time::Duration::from_secs(3)); // Wait for the serial connection to initialize
+    // let (tx_color, rx_color) = mpsc::channel();
+    // serial_connection_con::initialize_serial(tx_color); // Start the serial connection in a separate thread
+    // std::thread::sleep(std::time::Duration::from_secs(3)); // Wait for the serial connection to initialize
     // DISTANCE sensor initialization
     // TODO: Add distance sensor initialization here
 
@@ -59,38 +74,30 @@ fn main() {
     // TODO: Add motor initialization here
 
     // 'Global' variables
-    let mut bin1: Vec<i32> = Vec::new();
-    let mut bin2: Vec<i32> = Vec::new();
-    let mut bin3: Vec<i32> = Vec::new();
 
-    let mut current_state = State::Ready;
+    let mut machine = StateMachine::new();
     loop {
-        match current_state {
+        match &machine.current_state {
             State::Ready => {
-
+                // Wait for the start event
+                let event = Event::Start;
+                print!("Starting the machine");
+                machine.transition(event);
             },
             State::Detecting => {
-
+                // Wait for the disc detection event
+                let event = Event::DiscDetected;
+                print!("Disc detected");
+                machine.transition(event);
             },
             State::Positioning => {
-                
-            },
-            State::Analyzing => {
-                
-            },
-            State::Discarding => {
-                
-            },
-            State::Sorting => {
-                
-            },
-            State::Error => {
-                
-            },
-            State::Paused => {
-                
-            },
+                // Position the sorting arms based on the detected disc
+                print!("Positioning the arms");
         }
-
+            State::Analyzing => todo!(),
+            State::Discarding => todo!(),
+            State::Sorting => todo!(),
+            State::Error => todo!(),
+    }
     }
 }
