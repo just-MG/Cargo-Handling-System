@@ -47,10 +47,10 @@ pub fn initialize_serial(tx: mpsc::Sender<(i32, i32, i32)>) -> () {
                     color_values.remove(0);
                 }
                 if color_values.len() == 0 {
-                    continue;;
+                    continue;
                 }
                 tx.send(average_color_values(color_values.clone())).unwrap();
-                println!("Data sent:{:?}", average_color_values(color_values.clone()));
+                // println!("Data sent:{:?}", average_color_values(color_values.clone()));
             }
         }
         Err(e) => { // If the serial port failed to open
