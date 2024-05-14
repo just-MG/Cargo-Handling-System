@@ -107,3 +107,18 @@ fn convert_serial_color(serial: Vec<u8>) -> Vec<i32> {
     
     [color_values[0], color_values[1], color_values[2]].to_vec() // Return the color values as a tuple
 }
+
+pub fn get_nwst_color(rx: &mpsc::Receiver<(i32,i32,i32)>)->(i32,i32,i32) {
+    let mut color_values: (i32,i32,i32) = (0,0,0);
+    loop {
+        match rx.try_recv() {
+            Ok(_) => {
+                color_values = rx.recv().unwrap();
+            },
+            Err(_) => {
+                break;
+            }
+        }
+    }
+    color_values
+}
