@@ -88,8 +88,8 @@ impl ColorRange {
 pub fn logic(red: i32, green: i32, blue: i32) -> String {
     // Initialize the ranges for each color
     let red_range = ColorRange::new((370, 420), (70, 140), (-30, 30));
-    let green_range = ColorRange::new((320, 360), (100, 150), (-30, 30));
-    let blue_range = ColorRange::new((400, 440), (110, 160), (-30, 30));
+    let green_range = ColorRange::new((320, 360), (20, 150), (-30, 30));
+    let blue_range = ColorRange::new((400, 440), (150, 240), (-30, 30));
 
     // Classify each color component
     let r = red_range.classify(red);
