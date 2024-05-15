@@ -3,7 +3,7 @@ use std::time::Duration;
 
 /*
 
-REDUNDAND CODE
+LEGACY CODE
 
 */
 pub fn serial_connect() -> (i32, i32, i32) {

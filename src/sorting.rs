@@ -40,11 +40,7 @@ pub fn sort_disc(bins: &(Vec<i32>, Vec<i32>, Vec<i32>), pattern: &i32, disc: &i3
 
 pub fn check_needed(bins: &(Vec<i32>, Vec<i32>, Vec<i32>), pattern: &i32, disc: &i32) -> bool {
     let (next_bin1, next_bin2, next_bin3) = get_next_needed(bins, pattern);
-
-    if !(*disc == next_bin1 || *disc == next_bin2 || *disc == next_bin3) {
-        return false;
-    }
-    return true;
+    return *disc == next_bin1 || *disc == next_bin2 || *disc == next_bin3;
 }
 
 fn get_next_needed(bins: &(Vec<i32>, Vec<i32>, Vec<i32>), pattern: &i32) -> (i32, i32, i32) {

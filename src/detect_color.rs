@@ -6,12 +6,12 @@ struct ColorRange {
 }
 
 impl ColorRange {
-    // Constructor for creating a new ColorRange instance
+    /// Constructor for creating a new ColorRange instance
     fn new(white: (i32, i32), black: (i32, i32), conveyor: (i32, i32)) -> Self {
         ColorRange { white, black, conveyor }
     }
 
-    // Method to classify a given color value into one of the predefined categories
+    /// Method to classify a given color value into one of the predefined categories
     fn classify(&self, value: i32) -> u8 {
         match value {
             _ if (self.white.0..=self.white.1).contains(&value) => 1, // White range
