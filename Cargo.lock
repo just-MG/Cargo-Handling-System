@@ -164,6 +164,7 @@ name = "robot"
 version = "0.1.0"
 dependencies = [
  "hc-sr04",
+ "rppal",
  "serialport",
 ]
 
