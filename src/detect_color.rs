@@ -22,8 +22,14 @@ impl ColorRange {
     }
 }
 
-// Main logic function to determine the classification based on RGB values
-pub fn logic(red: i32, green: i32, blue: i32) -> String {
+
+
+/// Main logic function to determine the classification based on RGB values. |
+/// 0 - white disk |
+/// 1 - black disk |
+/// -1 - conveyor belt |
+/// 2 - unknown object
+pub fn logic(red: i32, green: i32, blue: i32) -> i32 {
     // Initialize the ranges for each color
     let red_range = ColorRange::new((370, 420), (70, 140), (-30, 30));
     let green_range = ColorRange::new((320, 360), (20, 150), (-30, 30));
@@ -36,10 +42,10 @@ pub fn logic(red: i32, green: i32, blue: i32) -> String {
 
     // Match the classified results to determine the object type
     match (r, g, b) {
-        (1, 1, 1) => "White disk".to_string(),  // All colors match white disk range
-        (2, 2, 2) => "Black disk".to_string(),  // All colors match black disk range
-        (3, 3, 3) => "Conveyor".to_string(),    // All colors match conveyor belt range
-        _ => "Unknown".to_string(),             // Any other combination
+        (1, 1, 1) => 0,  // All colors match white disk range
+        (2, 2, 2) => 1,  // All colors match black disk range
+        (3, 3, 3) => -1,    // All colors match conveyor belt range
+        _ => 2,             // Any other combination
     }
 }
 
