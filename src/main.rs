@@ -19,8 +19,8 @@ fn main() {
     info!("Initializing color detection");
     let (tx_color, rx_color) = mpsc::channel();
     serial_connection_con::initialize_serial(tx_color); // Start the serial connection in a separate thread
-    info!("Serial connection initialized");
     std::thread::sleep(std::time::Duration::from_secs(3)); // Wait for the serial connection to initialize
+    info!("Serial connection initialized");
 
     // DISTANCE sensor initialization
     info!("Initializing distance sensor");
@@ -103,12 +103,8 @@ fn main() {
             State::Sorting => {
                 info!("Sorting item");
                 let bin = sorting::sort_disc(&machine.shared_state.bin_status, &pattern_index, &machine.shared_state.disc_color);
-                match bin {
-                    1 => motors::sort_arm_to_1(),
-                    2 => motors::sort_arm_to_2(),
-                    3 => motors::sort_arm_to_3(),
-                    _ => error!("Sorting error: invalid bin number"),
-                }
+                motors::sort_arm(bin);
+                // wait for the sorting arms to move into position
                 std::thread::sleep(std::time::Duration::from_secs(sorting_time.clone()));
                 motors::start_conveyor(speed.clone());
                 let event = Event::DiscSorted;
