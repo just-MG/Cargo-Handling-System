@@ -5,30 +5,31 @@ use log::{error, info};
 
 // CONVEYOR
 pub fn start_conveyor(speed: i32) -> () {
-    println!("Starting conveyor at speed: {}", speed);
+    info!("Starting conveyor at speed: {}", speed);
     // TODO: Implement conveyor start logic here
 }
 
 pub fn stop_conveyor() -> () {
-    println!("Stopping conveyor");
+    info!("Stopping conveyor");
     // TODO: Implement conveyor start logic here
 }
 
 // SORTING ARMS
 /// direction: 0 - left, 1 - right
 pub fn move_sort_arm_1(direction: i32) -> () {
-    println!("Moving motor 1 to direction: {}", direction);
+    info!("Moving motor 1 to direction: {}", direction);
     // TODO: Implement motor movement logic here
 }
 
 /// direction: 0 - left, 1 - right
 pub fn move_sort_arm_2(direction: i32) -> () {
-    println!("Moving motor 2 to direction: {}", direction);
+    info!("Moving motor 2 to direction: {}", direction);
     // TODO: Implement motor movement logic here
 }
 
 /// Sets the sorting arms to the specified bin
 pub fn sort_arm(bin: i32) -> () {
+    info!("Sorting item to bin: {}", bin);
     match bin {
         1 => move_sort_arm_1(0), // Move arm 1 to left,
         2 => {
@@ -45,5 +46,5 @@ pub fn sort_arm(bin: i32) -> () {
 
 // DISCARD MOTOR
 pub fn discard_item() -> () {
-    println!("Discarding item");
+    info!("Discarding item");
 }
