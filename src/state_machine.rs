@@ -7,10 +7,10 @@ pub struct StateMachine {
 impl StateMachine {
     pub fn new() -> Self {
         StateMachine {
-            current_state: State::Ready,
+            current_state: State::Detecting,
             shared_state: SharedState {
                 bin_status: (Vec::new(), Vec::new(), Vec::new()),
-                prev_state: State::Ready,
+                prev_state: State::Detecting,
                 disc_color: 2
             },
         }
@@ -20,10 +20,6 @@ impl StateMachine {
     pub fn transition(&mut self, event: Event) {
         use State::*;
         match (self.current_state, event) {
-            (Ready, Event::Start) => {
-                self.current_state = Detecting;
-                self.shared_state.prev_state = Ready;
-            },
             (Detecting, Event::DiscDetected) => {
                 self.current_state = Positioning;
                 self.shared_state.prev_state = Detecting;
@@ -72,7 +68,6 @@ impl StateMachine {
 
 // Define events
 pub enum Event {
-    Start,
     DiscDetected,
     DiscPositioned,
     DiscNeeded,
@@ -94,7 +89,6 @@ pub struct SharedState {
 // Define the states with access to the shared state
 #[derive(Clone, Copy)]
 pub enum State {
-    Ready,
     Detecting,
     Positioning,
     Analyzing,
