@@ -1,116 +1,12 @@
 mod serial_connection_con;
 mod detect_color;
 mod motors;
-use std::sync::mpsc;
-
-use crate::serial_connection_con::get_nwst_color;
 mod sorting;
+mod state_machine;
+use crate::state_machine::*;
 
-// Define the shared state
-struct SharedState {
-    bin_status: (Vec<i32>, Vec<i32>, Vec<i32>),
-    prev_state: State,
-    disc_color: i32
-}
-
-// Define the states with access to the shared state
-#[derive(Clone, Copy)]
-enum State {
-    Ready,
-    Detecting,
-    Positioning,
-    Analyzing,
-    Reanalyzing,
-    Discarding,
-    Sorting,
-    Error,
-}
-
-// State machine struct includes the shared state
-struct StateMachine {
-    current_state: State,
-    shared_state: SharedState,
-}
-
-impl StateMachine {
-    fn new() -> Self {
-        StateMachine {
-            current_state: State::Ready,
-            shared_state: SharedState {
-                bin_status: (Vec::new(), Vec::new(), Vec::new()),
-                prev_state: State::Ready,
-                disc_color: 2
-            },
-        }
-    }
-
-    // Transition function with access to shared state
-    fn transition(&mut self, event: Event) {
-        use State::*;
-        match (self.current_state, event) {
-            (Ready, Event::Start) => {
-                self.current_state = Detecting;
-                self.shared_state.prev_state = Ready;
-            },
-            (Detecting, Event::DiscDetected) => {
-                self.current_state = Positioning;
-                self.shared_state.prev_state = Detecting;
-            },
-            (Positioning, Event::DiscPositioned) => {
-                self.current_state = Analyzing;
-                self.shared_state.prev_state = Positioning;
-            },
-            (Analyzing, Event::DiscNeeded) => {
-                self.current_state = Sorting;
-                self.shared_state.prev_state = Analyzing;
-            },
-            (Analyzing, Event::DiscNotNeeded) => {
-                self.current_state = Discarding;
-                self.shared_state.prev_state = Analyzing;
-            },
-            (Analyzing, Event::DiscUnknown) => {
-                self.current_state = Reanalyzing;
-                self.shared_state.prev_state = Analyzing;
-            },
-            (Discarding, Event::DiscDiscarded) => {
-                self.current_state = Detecting;
-                self.shared_state.prev_state = Discarding;
-            },
-            (Sorting, Event::DiscSorted) => {
-                self.current_state = Detecting;
-                self.shared_state.prev_state = Sorting;
-            },
-            (Reanalyzing, Event::DiscUnknown) => {
-                self.current_state = Discarding;
-                self.shared_state.prev_state = Reanalyzing;
-            },
-            (Reanalyzing, Event::DiscNeeded) => {
-                self.current_state = Sorting;
-                self.shared_state.prev_state = Reanalyzing;
-            },
-            (Reanalyzing, Event::DiscNotNeeded) => {
-                self.current_state = Discarding;
-                self.shared_state.prev_state = Reanalyzing;
-            },
-            // Other transitions...
-            _ => (),
-        }
-    }
-}
-
-// Define events
-enum Event {
-    Start,
-    DiscDetected,
-    DiscPositioned,
-    DiscNeeded,
-    DiscNotNeeded,
-    DiscUnknown,
-    DiscDiscarded,
-    DiscSorted,
-    // MultipleElements,
-    Error, // placeholder? for all errors
-}
+use std::sync::mpsc;
+use crate::serial_connection_con::get_nwst_color;
 
 
 fn main() {
@@ -127,7 +23,7 @@ fn main() {
 
     // 'Global' variables
     let pattern_index = 0; //placeholder
-    let mut machine = StateMachine::new();
+    let mut machine = state_machine::StateMachine::new();
 
     // Robot IRL variables - all time in miliseconds
     let speed = 1; // speed of the conveyor belt
