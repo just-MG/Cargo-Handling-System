@@ -1,14 +1,16 @@
-use log::{info, debug, warn, error};
 mod serial_connection_con;
 mod detect_color;
 mod motors;
 mod sorting;
 mod state_machine;
 mod logging;
+use log::info;
 
 use crate::state_machine::*;
+
 use std::sync::mpsc;
 use crate::serial_connection_con::get_nwst_color;
+
 
 fn main() {
     // Initialize logging
@@ -19,8 +21,8 @@ fn main() {
     info!("Initializing color detection");
     let (tx_color, rx_color) = mpsc::channel();
     serial_connection_con::initialize_serial(tx_color); // Start the serial connection in a separate thread
-    std::thread::sleep(std::time::Duration::from_secs(3)); // Wait for the serial connection to initialize
     info!("Serial connection initialized");
+    std::thread::sleep(std::time::Duration::from_secs(3)); // Wait for the serial connection to initialize
 
     // DISTANCE sensor initialization
     info!("Initializing distance sensor");
@@ -31,10 +33,10 @@ fn main() {
     // TODO: Add motor initialization here
 
     // 'Global' variables
-    let pattern_index = 0; // placeholder
+    let pattern_index = 0; //placeholder
     let mut machine = state_machine::StateMachine::new();
 
-    // Robot IRL variables - all time in milliseconds
+    // Robot IRL variables - all time in miliseconds
     let speed = 1; // speed of the conveyor belt
     let sorting_time = 1; // time for the sorting arms to move into positions
     let positioning_time = 1; // time for the conveyor belt to position the disc under the color sensor
@@ -47,83 +49,88 @@ fn main() {
     loop {
         match &machine.current_state {
             State::Detecting => {
+                // Wait for the disc detection event from the distance sensor
                 motors::start_conveyor(speed.clone());
-                info!("Conveyor started for detecting disc");
+                info!("Waiting for disc detection");
                 loop {
                     let distance = 0; // Placeholder for the distance sensor value
-                    debug!("Checking distance: {}", distance);
-                    if distance < distance_sensor_threshold {
-                        info!("Disc detected at distance: {}", distance);
+                    if distance < distance_sensor_threshold { // check if an object is detected
+                        info!("Disc detected with distance: {}", distance);
                         break;
                     }
                     std::thread::sleep(std::time::Duration::from_millis(distance_detection_rate.clone()));
                 }
                 let event = Event::DiscDetected;
-                info!("Transitioning to Positioning due to disc detection");
                 machine.transition(event);
             },
             State::Positioning => {
+                // Position the conveyor belt based on the detected disc
                 info!("Positioning the disc");
                 std::thread::sleep(std::time::Duration::from_millis(positioning_time.clone())); // Placeholder for positioning time
                 motors::stop_conveyor();
                 let event = Event::DiscPositioned;
                 machine.transition(event);
-            },
+        }
             State::Analyzing => {
-                info!("Analyzing the color of the disc");
+                // Analyze the color of the detected disc
+                println!("Analyzing the color");
                 let color_values = get_nwst_color(&rx_color);
                 let color = detect_color::logic(color_values.0, color_values.1, color_values.2);
-
-                if color == 2 { // color is unknown
-                    warn!("Disc color unknown, reanalyzing");
+                // if the disc color is unknown, reanalyze it
+                if color == 2 {
                     let event = Event::DiscUnknown;
                     machine.transition(event);
-                } else if color == -1 { // color is conveyor
-                    error!("Error in color detection, moving to error state");
+                }
+                // if the disc color is conveyor, go to Error
+                if color == -1 {
                     machine.shared_state.disc_color = color;
                     let event = Event::Error;
                     machine.transition(event);
-                } else if sorting::check_needed(&machine.shared_state.bin_status, &pattern_index, &color) {
-                    info!("Disc needed, sorting");
+                }
+                // if the disc color is detected and it is needed, transition to Sorting
+                if sorting::check_needed(&machine.shared_state.bin_status, &pattern_index, &color) {
                     machine.shared_state.disc_color = color;
                     let event = Event::DiscNeeded;
                     machine.transition(event);
                 } else {
-                    info!("Disc not needed, discarding");
+                    // color is known, but the disc is not needed, transition to Discarding
                     let event = Event::DiscNotNeeded;
                     machine.transition(event);
                 }
             },
             State::Discarding => {
-                info!("Discarding item");
                 motors::discard_item();
                 std::thread::sleep(std::time::Duration::from_secs(discarding_time.clone()));
                 let event = Event::DiscDiscarded;
                 machine.transition(event);
             },
             State::Sorting => {
-                info!("Sorting item");
                 let bin = sorting::sort_disc(&machine.shared_state.bin_status, &pattern_index, &machine.shared_state.disc_color);
-                motors::sort_arm(bin);
-                // wait for the sorting arms to move into position
+                match bin {
+                    1 => motors::sort_arm_to_1(),
+                    2 => motors::sort_arm_to_2(),
+                    3 => motors::sort_arm_to_3(),
+                    _ => (), // error somewhere
+                }
                 std::thread::sleep(std::time::Duration::from_secs(sorting_time.clone()));
                 motors::start_conveyor(speed.clone());
                 let event = Event::DiscSorted;
                 machine.transition(event);
             },
             State::Error => {
-                error!("Critical error occurred, exiting loop");
+                // Placeholder for error handling
+                println!("Error occurred");
                 break;
             },
             State::Reanalyzing => {
-                info!("Reanalyzing disc color");
+                // We retry to get the disc color
                 std::thread::sleep(std::time::Duration::from_millis(500)); // wait for new measurements
                 let color_values = get_nwst_color(&rx_color);
                 let color = detect_color::logic(color_values.0, color_values.1, color_values.2);
-                if color == 2 {
-                    warn!("Disc still unknown after reanalysis");
+                if color == 2 { // disk is still unknown
+
                 }
             },
-        }
+    }
     }
 }
