@@ -1,65 +1,66 @@
-use std::io::{self};
+use std::io::{self, Read};
 use std::time::Duration;
 use std::thread;
 use std::sync::mpsc;
+use log::*;
 
-pub fn initialize_serial(tx: mpsc::Sender<(i32, i32, i32)>) -> () {
+pub fn initialize_serial(tx: mpsc::Sender<(i32, i32, i32)>) {
     thread::spawn(move || {
-    let port_name: &str = "/dev/ttyUSB0"; // Get the value of the "port" argument
-    let baud_rate = 9600; // Get the value of the "baud" argument and parse it as u32
+        let port_name: &str = "/dev/ttyUSB0"; // Get the value of the "port" argument
+        let baud_rate = 9600; // Get the value of the "baud" argument and parse it as u32
 
-    let port = serialport::new(port_name, baud_rate) // Create a new serial port instance
-        .timeout(Duration::from_millis(10)) // Set the read timeout to 10 milliseconds
-        .open(); // Open the serial port
+        info!("Attempting to initialize serial port '{}' at baud rate '{}'", port_name, baud_rate);
 
-    match port {
-        Ok(mut port) => { // If the serial port was successfully opened
-            let mut serial_buf: Vec<u8> = vec![0; 1000]; // Create a buffer to store received data
-            let mut received_data: Vec<u8> = Vec::new(); // Create a vector to store the received data
-            let mut color_values: Vec<Vec<i32>> = Vec::new(); // Create a vector to store the color values
-            loop {
-                match port.read(serial_buf.as_mut_slice()) { // Read data from the serial port into the buffer
-                    Ok(t) => {
-                        received_data.extend_from_slice(&serial_buf[..t]); // Append the received data to the vector
-                        let result = received_data.clone();
-                        // println!("result length{:?}", result.len());
-                        // println!("result raw{:?}", result);
-                        if result.len() <= 19 && result[0] == 123 && result[result.len()-3] == 125 { // Check if the vector does not contain more than one result
-                            let result = received_data.clone(); // Save the received data to a variable
-                            // for &byte in &result { // Iterate over the received data
-                            //     let character = byte as char; // Convert the byte to a character
-                            //     print!("{}", character); // Print the character
-                            // }
-                            color_values.push(convert_serial_color(result)); // Append the converted color values to the color values vector
-                        } else {
-                            // If the vector contains more than one result, clear the vector
-                            if color_values.len() > 19 {
-                                color_values.clear();
+        let port = serialport::new(port_name, baud_rate) // Create a new serial port instance
+            .timeout(Duration::from_millis(10)) // Set the read timeout to 10 milliseconds
+            .open(); // Open the serial port
+
+        match port {
+            Ok(mut port) => { // If the serial port was successfully opened
+                info!("Serial port '{}' opened successfully.", port_name);
+                let mut serial_buf: Vec<u8> = vec![0; 1000]; // Create a buffer to store received data
+                let mut received_data: Vec<u8> = Vec::new(); // Create a vector to store the received data
+                let mut color_values: Vec<Vec<i32>> = Vec::new(); // Create a vector to store the color values
+                loop {
+                    match port.read(serial_buf.as_mut_slice()) { // Read data from the serial port into the buffer
+                        Ok(t) => {
+                            debug!("Read {} bytes from serial port.", t);
+                            received_data.extend_from_slice(&serial_buf[..t]); // Append the received data to the vector
+                            if received_data.len() <= 19 && received_data[0] == 123 && received_data[received_data.len()-3] == 125 { // Check if the vector does not contain more than one result
+                                let result = received_data.clone(); // Save the received data to a variable
+                                color_values.push(convert_serial_color(result)); // Append the converted color values to the color values vector
+                            } else {
+                                // If the vector contains more than one result, clear the vector
+                                if color_values.len() > 19 {
+                                    color_values.clear();
+                                }
                             }
+                        },
+                        Err(ref e) if e.kind() == io::ErrorKind::TimedOut => {
+                            warn!("Serial connection timeout.");
+                        },
+                        Err(e) => {
+                            error!("Error reading from serial port: {:?}", e);
                         }
-                    },
-                    Err(ref e) if e.kind() == io::ErrorKind::TimedOut => (), // If a timeout occurred, do nothing
-                    Err(e) => eprintln!("{:?}", e) // If an error occurred, print the error message
+                    }
+                    received_data.clear(); // Clear the received data vector
+                    thread::sleep(Duration::from_millis(50));
+
+                    if color_values.len() > 5 {
+                        color_values.remove(0);
+                    }
+                    if !color_values.is_empty() {
+                        tx.send(average_color_values(color_values.clone())).unwrap();
+                    }
                 }
-                received_data.clear(); // Clear the received data vector
-                std::thread::sleep(Duration::from_millis(50));
-                if color_values.len() > 5 {
-                    color_values.remove(0);
-                }
-                if color_values.len() == 0 {
-                    continue;
-                }
-                tx.send(average_color_values(color_values.clone())).unwrap();
-                // println!("Data sent:{:?}", average_color_values(color_values.clone()));
+            }
+            Err(e) => { // If the serial port failed to open
+                error!("Failed to open serial port '{}'. Error: {:?}", port_name, e); // Log the error message
             }
         }
-        Err(e) => { // If the serial port failed to open
-            eprintln!("Failed to open \"{}\". Error: {}", port_name, e); // Print an error message
-            ::std::process::exit(1); // Exit the program with a non-zero status code
-        }
-    }
     });
 }
+
 
 fn average_color_values(color_values: Vec<Vec<i32>>) -> (i32, i32, i32) {
     let mut average_r = 0;
@@ -120,5 +121,6 @@ pub fn get_nwst_color(rx: &mpsc::Receiver<(i32,i32,i32)>)->(i32,i32,i32) {
             }
         }
     }
+    info!("Newest color got: {:?}", color_values);
     color_values
 }
