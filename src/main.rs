@@ -59,7 +59,7 @@ fn main() {
                     std::thread::sleep(std::time::Duration::from_millis(distance_detection_rate.clone()));
                 }
                 let event = Event::DiscDetected;
-                debug!("Transitioning to Positioning due to disc detection");
+                info!("Transitioning to Positioning due to disc detection");
                 machine.transition(event);
             },
             State::Positioning => {
@@ -73,11 +73,12 @@ fn main() {
                 info!("Analyzing the color of the disc");
                 let color_values = get_nwst_color(&rx_color);
                 let color = detect_color::logic(color_values.0, color_values.1, color_values.2);
-                if color == 2 {
+
+                if color == 2 { // color is unknown
                     warn!("Disc color unknown, reanalyzing");
                     let event = Event::DiscUnknown;
                     machine.transition(event);
-                } else if color == -1 {
+                } else if color == -1 { // color is conveyor
                     error!("Error in color detection, moving to error state");
                     machine.shared_state.disc_color = color;
                     let event = Event::Error;

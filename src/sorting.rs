@@ -1,4 +1,5 @@
 /*
+TODO: change the doc below
 Algorithm for sorting the discs into correct bins
 
 Stores:
