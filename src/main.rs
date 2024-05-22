@@ -113,6 +113,7 @@ fn main() {
                 machine.transition(event);
             },
             State::Error => {
+                // use Event::ErrorCallBack to transition back to the previous state
                 error!("Critical error occurred, exiting loop");
                 break;
             },

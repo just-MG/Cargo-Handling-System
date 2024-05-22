@@ -60,7 +60,10 @@ impl StateMachine {
                 self.current_state = Discarding;
                 self.shared_state.prev_state = Reanalyzing;
             },
-            // Other transitions...
+            (Error, Event::ErrorCallBack) => {
+                self.current_state = self.shared_state.prev_state;
+                self.shared_state.prev_state = Error;
+            },
             _ => (),
         }
     }
@@ -77,6 +80,7 @@ pub enum Event {
     DiscSorted,
     // MultipleElements,
     Error, // placeholder? for all errors
+    ErrorCallBack,
 }
 
 // Define the shared state
@@ -95,5 +99,5 @@ pub enum State {
     Reanalyzing,
     Discarding,
     Sorting,
-    Error,
+    Error
 }
