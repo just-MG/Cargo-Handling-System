@@ -56,6 +56,7 @@ pub fn initialize_serial(tx: mpsc::Sender<(i32, i32, i32)>) {
             }
             Err(e) => { // If the serial port failed to open
                 error!("Failed to open serial port '{}'. Error: {:?}", port_name, e); // Log the error message
+                ::std::process::exit(1);
             }
         }
     });

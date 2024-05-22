@@ -1,27 +1,28 @@
 extern crate hc_sr04;
+use log::{debug, info};
 use hc_sr04::{HcSr04, Result, Unit};
-use std::{thread, time::Duration};
 
-fn run() -> Result<()> {
+pub fn get_distance() -> f32 {
     // TRIGGER on GPIO Pin 7 & ECHO on GPIO Pin 11.
-    println!("start program");
     let mut ultrasonic = HcSr04::new(4, 17, None).unwrap();
 	
-    println!("start loop");
+    // match ultrasonic.measure_distance(Unit::Centimeters).unwrap() {
+    //     Some(dist) => {info!("Distance got: {}", dist);return dist},
+    //     None => {debug!("No distance result"); return 0.0},
+    // }
 
-    loop {
-	println!("start 1");
-        match ultrasonic.measure_distance(Unit::Centimeters).unwrap() {
-            Some(dist) => println!("Distance: {:.1}cm", dist),
-            None => println!("Object out of range"),
+    match ultrasonic.measure_distance(Unit::Centimeters) {
+        Ok(Some(dist)) => {
+            info!("Distance got: {}", dist);
+            return dist;
         }
-        println!("end 1");
-        thread::sleep(Duration::from_secs(1));
-    }
-}
-
-fn main() {
-    if let Err(err) = run() {
-        eprintln!("error: {err}");
+        Ok(None) => {
+            debug!("No distance result");
+            return 0.0;
+        }
+        Err(e) => {
+            debug!("Error getting distance: {:?}", e);
+            return 0.0;
+        }
     }
 }

@@ -5,6 +5,7 @@ mod motors;
 mod sorting;
 mod state_machine;
 mod logging;
+mod dist_sensor;
 
 use crate::state_machine::*;
 use std::sync::mpsc;
@@ -39,7 +40,7 @@ fn main() {
     let sorting_time = 1; // time for the sorting arms to move into positions
     let positioning_time = 1; // time for the conveyor belt to position the disc under the color sensor
     let discarding_time = 1; // time for the discarding arm to move into position
-    let distance_sensor_threshold = 1; // distance sensor threshold for detecting an object
+    let distance_sensor_threshold = 1.0; // distance sensor threshold for detecting an object
     let distance_detection_rate = 1; // wait time between each distance sensor reading
 
     info!("Initialization complete");
@@ -50,7 +51,7 @@ fn main() {
                 motors::start_conveyor(speed.clone());
                 info!("Conveyor started for detecting disc");
                 loop {
-                    let distance = 0; // Placeholder for the distance sensor value
+                    let distance = dist_sensor::get_distance(); // Placeholder for the distance sensor value
                     debug!("Checking distance: {}", distance);
                     if distance < distance_sensor_threshold {
                         info!("Disc detected at distance: {}", distance);
@@ -120,8 +121,15 @@ fn main() {
                 std::thread::sleep(std::time::Duration::from_millis(500)); // wait for new measurements
                 let color_values = get_nwst_color(&rx_color);
                 let color = detect_color::logic(color_values.0, color_values.1, color_values.2);
-                if color == 2 {
-                    warn!("Disc still unknown after reanalysis");
+                if sorting::check_needed(&machine.shared_state.bin_status, &pattern_index, &color) {
+                    info!("Disc needed after reanalysis, sorting");
+                    machine.shared_state.disc_color = color;
+                    let event = Event::DiscNeeded;
+                    machine.transition(event);
+                } else {
+                    info!("Disc not needed after reanalysis, discarding");
+                    let event = Event::DiscNotNeeded;
+                    machine.transition(event);
                 }
             },
         }
