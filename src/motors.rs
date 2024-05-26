@@ -8,6 +8,9 @@ use rppal::system::DeviceInfo;
 const GPIO_2: u8 = 13; //The pin numbers are temporarirly incorrect! The correct numbers will be updated shortly (the raspberry pi has the correct numbers saved)!
 const GPIO_0: u8 = 11;
 const GPIO_7: u8 = 7;
+// for disracr arm
+const DIS1: u8 = 2; 
+const DIS2: u8 = 3; 
 
 //Servo initialization stuff
 const GPIO_PWM_0: u8 = 23; //again the correct pin number is temporarirly on the raspberry pi
@@ -27,6 +30,12 @@ pub fn initialize_conveyor() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+pub fn initialize_discarder() -> Result<(), Box<dyn Error>> {
+    let mut mot1 = Gpio::new()?.get(DIS1)?.into_output();
+    let mut mot2 = Gpio::new()?.get(DIS2)?.into_output();
+    Ok(())
+}
+
 pub fn start_conveyor() -> Result<(), Box<dyn Error>> {
     pin2.set_high();
     pin0.set_low();
@@ -37,6 +46,17 @@ pub fn start_conveyor() -> Result<(), Box<dyn Error>> {
 pub fn stop_conveyor() -> Result<(), Box<dyn Error>> {
     pin2.set_low();
     pin0.set_low();
+    Ok(())
+}
+
+pub fn discard() -> Result<(), Box<dyn Error>>{
+    mot1.set_high();
+    mot2.set_low();
+    thread::sleep(Duration::from_millis(300));
+
+    mot1.set_low();
+    mot2.set_high();
+    thread::sleep(Duration::from_millis(300));
     Ok(())
 }
 
