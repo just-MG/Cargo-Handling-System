@@ -23,14 +23,15 @@ fn get_mode() -> io::Result<i32> {
 }
 
 fn input() -> io::Result<[[u8; 5]; 3]> {
-    let mut arr = [[0u8; 5]; 3];
-    println!("Enter values 0 for black and 1 for white");
-    println!("arr[bin] ");
+    println!("<------------------------------>");
+    println!("Color values: 0 - white, 1 - black");
+    println!("Sample input: 1 1 0 0 0");
+    println!("Discs are placed in the bins bottom to top");
     let mut arr: [[u8;5];3] = [[0;5];3];
     for i in 0..3 {
         loop {
             let mut row = String::new();
-            println!("Enter the values for arr[{}]: ", i);
+            print!("Enter the values for bin {}: ", i);
             io::stdout().flush()?;  // Flush stdout to ensure the prompt is displayed before read_line
             io::stdin().read_line(&mut row)?;
             let row: Result<Vec<u8>, _> = row.split_whitespace().map(|s| s.parse()).collect();
@@ -46,11 +47,20 @@ fn input() -> io::Result<[[u8; 5]; 3]> {
         }
     }
     // Print the array
-    for i in 0..3 {
-        for j in 0..5 {
-            print!("{} ", arr[i][j]);
+    println!("Real world representation:");
+    for i in 0..5 {
+        for j in 0..3 {
+            print!("{} ", map(arr[j][4-i]));
         }
         println!();  // Print a newline at the end of each row
     }
     Ok(arr)
+}
+
+fn map (x: u8) -> char {
+    match x {
+        0 => 'O',
+        1 => 'X',
+        _ => ' '
+    }
 }
