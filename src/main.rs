@@ -36,7 +36,6 @@ fn main() {
     let mut machine = state_machine::StateMachine::new();
 
     // Robot IRL variables - all time in milliseconds
-    let speed = 1; // speed of the conveyor belt
     let sorting_time = 1; // time for the sorting arms to move into positions
     let positioning_time = 1; // time for the conveyor belt to position the disc under the color sensor
     let discarding_time = 1; // time for the discarding arm to move into position
@@ -48,7 +47,7 @@ fn main() {
     loop {
         match &machine.current_state {
             State::Detecting => {
-                motors::start_conveyor(speed.clone());
+                motors::start_conveyor();
                 info!("Conveyor started for detecting disc");
                 loop {
                     let distance = dist_sensor::get_distance(); // Placeholder for the distance sensor value
@@ -108,7 +107,7 @@ fn main() {
                 motors::sort_arm(bin);
                 // wait for the sorting arms to move into position
                 std::thread::sleep(std::time::Duration::from_secs(sorting_time.clone()));
-                motors::start_conveyor(speed.clone());
+                motors::start_conveyor();
                 let event = Event::DiscSorted;
                 machine.transition(event);
             },
