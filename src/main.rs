@@ -18,6 +18,7 @@ fn main() {
     info!("Begin initialization");
 
     // Get desired output from user
+    info!("Getting input from user");
     let output: [[u8; 5]; 3] = input::get_input();
     info!("Input received: {:?}", output);
 
@@ -36,8 +37,7 @@ fn main() {
     info!("Initializing motors");
     // TODO: Add motor initialization here
 
-    // 'Global' variables
-    let pattern_index = 0; // placeholder
+    // State maschine
     let mut machine = state_machine::StateMachine::new();
 
     // Robot IRL variables - all time in milliseconds
@@ -109,6 +109,11 @@ fn main() {
             State::Sorting => {
                 info!("Sorting item");
                 let bin = sorting::sort_disc(&machine.shared_state.bin_status, output.clone(), &machine.shared_state.disc_color);
+                if bin == -1 {
+                    error!("Error TODO - one of the bins is full");
+                    let event = Event::Error;
+                    machine.transition(event);
+                }
                 motors::sort_arm(bin);
                 // wait for the sorting arms to move into position
                 std::thread::sleep(std::time::Duration::from_secs(sorting_time.clone()));

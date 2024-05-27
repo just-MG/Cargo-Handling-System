@@ -1,6 +1,6 @@
 extern crate hc_sr04;
 use log::{debug, info};
-use hc_sr04::{HcSr04, Result, Unit};
+use hc_sr04::{HcSr04, Unit};
 
 pub fn get_distance() -> f32 {
     // TRIGGER on GPIO Pin 7 & ECHO on GPIO Pin 11.
