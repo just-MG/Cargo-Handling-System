@@ -6,7 +6,7 @@ Stores:
     - patters for the discs
 Input: 
     - current state of the bins
-    - pattern to be created
+    - output to be created
     - dick detected
 Returs:
     - the bin where the disc should be placed
@@ -17,8 +17,10 @@ Black disk: 1
 Other/unknown: 2 - the below code will not be called if disk is other or unknown
 */
 
-pub fn sort_disc(bins: &(Vec<i32>, Vec<i32>, Vec<i32>), pattern: &i32, disc: &i32) -> i32 {
-    let (next_bin1, next_bin2, next_bin3) = get_next_needed(bins, pattern);
+pub fn sort_disc(bins: &(Vec<i32>, Vec<i32>, Vec<i32>), output: [[u8; 5]; 3], disc: &i32) -> i32 {
+    let next_bin1 = get_next_needed_bin(&bins.0, output, 0);
+    let next_bin2 = get_next_needed_bin(&bins.1, output, 1);
+    let next_bin3 = get_next_needed_bin(&bins.2, output, 2);
 
     // sort the disc
     // try the first bin
@@ -39,19 +41,17 @@ pub fn sort_disc(bins: &(Vec<i32>, Vec<i32>, Vec<i32>), pattern: &i32, disc: &i3
     return -1
 }
 
-pub fn check_needed(bins: &(Vec<i32>, Vec<i32>, Vec<i32>), pattern: &i32, disc: &i32) -> bool {
-    let (next_bin1, next_bin2, next_bin3) = get_next_needed(bins, pattern);
+pub fn check_needed(bins: &(Vec<i32>, Vec<i32>, Vec<i32>), output: [[u8; 5]; 3], disc: &i32) -> bool {
+    let next_bin1 = get_next_needed_bin(&bins.0, output, 0);
+    let next_bin2 = get_next_needed_bin(&bins.1, output, 1);
+    let next_bin3 = get_next_needed_bin(&bins.2, output, 2);
     return *disc == next_bin1 || *disc == next_bin2 || *disc == next_bin3;
 }
 
-fn get_next_needed(bins: &(Vec<i32>, Vec<i32>, Vec<i32>), pattern: &i32) -> (i32, i32, i32) {
-    let bin1 = &bins.0;
-    let bin2 = &bins.1;
-    let bin3 = &bins.2;
-
-    // find the next disk needed for each bin
-    // TODO: implement
-    
-    // Placeholder
-    return (0, 1, 0)
+fn get_next_needed_bin(bin: &Vec<i32>, output: [[u8; 5]; 3], bin_number: i32) -> i32 {
+    // find the next disk needed for the bin
+    if bin.len() == 5 {
+        return -1; // bin is full
+    } 
+    return output[bin_number as usize][bin.len()].into();
 }
