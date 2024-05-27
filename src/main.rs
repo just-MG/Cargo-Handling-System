@@ -109,11 +109,6 @@ fn main() {
             State::Sorting => {
                 info!("Sorting item");
                 let bin = sorting::sort_disc(&machine.shared_state.bin_status, output.clone(), &machine.shared_state.disc_color);
-                if bin == -1 {
-                    error!("Error TODO - one of the bins is full");
-                    let event = Event::Error;
-                    machine.transition(event);
-                }
                 motors::sort_arm(bin);
                 // wait for the sorting arms to move into position
                 std::thread::sleep(std::time::Duration::from_secs(sorting_time.clone()));
@@ -122,9 +117,11 @@ fn main() {
                 machine.transition(event);
             },
             State::Error => {
+                // handle error
+                
                 // use Event::ErrorCallBack to transition back to the previous state
-                error!("Critical error occurred, exiting loop");
-                break;
+                let event = Event::ErrorCallBack;
+                machine.transition(event);
             },
             State::Reanalyzing => {
                 info!("Reanalyzing disc color");
