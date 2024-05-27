@@ -19,22 +19,20 @@ const PULSE_MAX_US: u64 = 1800;
 
 use log::{error, info};
 
+// let mut pin7 = Gpio::new()?.get(GPIO_7)?.into_output();
+
 // CONVEYOR
-pub fn initialize_conveyor() -> Result<(), Box<dyn Error>> {
+pub fn start_conveyor() -> Result<(), Box<dyn Error>> {
     let mut pin2 = Gpio::new()?.get(GPIO_2)?.into_output();
     let mut pin0 = Gpio::new()?.get(GPIO_0)?.into_output();
-    let mut pin7 = Gpio::new()?.get(GPIO_7)?.into_output();
-    Ok(())
-}
-
-pub fn start_conveyor() -> Result<(), Box<dyn Error>> {
     pin2.set_high();
     pin0.set_low();
-    //thread::sleep(Duration::from_millis(5000)); optional line to sleep
     Ok(())
 }
 
 pub fn stop_conveyor() -> Result<(), Box<dyn Error>> {
+    let mut pin2 = Gpio::new()?.get(GPIO_2)?.into_output();
+    let mut pin0 = Gpio::new()?.get(GPIO_0)?.into_output();
     pin2.set_low();
     pin0.set_low();
     Ok(())
@@ -46,21 +44,18 @@ pub fn move_sort_arm_1(direction: i32) -> Result<(), Box<dyn Error>> {
     info!("Moving motor 1 to direction: {}", direction);
     //Initialize servo
     let mut pin = Gpio::new()?.get(GPIO_PWM_0)?.into_output();
-    if direction = 0 {
+    if direction == 0 {
         //Rotate the servo
         pin.set_pwm(
             Duration::from_millis(PERIOD_MS),
             Duration::from_micros(PULSE_MAX_US),
         )?;
-        // Sleep for 500 ms while the servo moves into position.
-        thread::sleep(Duration::from_millis(500));
     }
-    if direction = 1 {
+    if direction == 1 {
         pin.set_pwm(
             Duration::from_millis(PERIOD_MS),
             Duration::from_micros(PULSE_MIN_US),
         )?;
-        thread::sleep(Duration::from_millis(500));
     } 
     Ok(())
 }
@@ -70,21 +65,18 @@ pub fn move_sort_arm_2(direction: i32) -> Result<(), Box<dyn Error>> {
     info!("Moving motor 2 to direction: {}", direction);
     //Initialize servo
     let mut pin = Gpio::new()?.get(GPIO_PWM_1)?.into_output();
-    if direction = 0 {
+    if direction == 0 {
         //Rotate the servo
         pin.set_pwm(
             Duration::from_millis(PERIOD_MS),
             Duration::from_micros(PULSE_MAX_US),
         )?;
-        // Sleep for 500 ms while the servo moves into position.
-        thread::sleep(Duration::from_millis(500));
     }
-    if direction = 1 {
+    if direction == 1 {
         pin.set_pwm(
             Duration::from_millis(PERIOD_MS),
             Duration::from_micros(PULSE_MIN_US),
         )?;
-        thread::sleep(Duration::from_millis(500));
     }
     Ok(())
 }
@@ -93,7 +85,7 @@ pub fn move_sort_arm_2(direction: i32) -> Result<(), Box<dyn Error>> {
 pub fn sort_arm(bin: i32) -> () {
     info!("Sorting item to bin: {}", bin);
     match bin {
-        1 => move_sort_arm_1(0), // Move arm 1 to left,
+        1 => {move_sort_arm_1(0);}, // Move arm 1 to left,
         2 => {
             move_sort_arm_1(0); // Move arm 1 to left
             move_sort_arm_2(1); // Move arm 2 to right
@@ -102,7 +94,7 @@ pub fn sort_arm(bin: i32) -> () {
             move_sort_arm_1(0); // Move arm 1 to left
             move_sort_arm_2(0); // Move arm 2 to left
         },
-        _ => error!("Sorting error: invalid bin number"),
+        _ => (),
     }
 }
 
