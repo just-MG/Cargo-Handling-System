@@ -6,6 +6,7 @@ mod sorting;
 mod state_machine;
 mod logging;
 mod dist_sensor;
+mod input;
 
 use crate::state_machine::*;
 use std::sync::mpsc;
@@ -15,6 +16,10 @@ fn main() {
     // Initialize logging
     logging::setup_logging().expect("Failed to initialize logging");
     info!("Begin initialization");
+
+    // Get desired output from user
+    let output: [[u8; 5]; 3] = input::get_input();
+    info!("Input received: {:?}", output);
 
     // COLOR detection initialization
     info!("Initializing color detection");
@@ -83,7 +88,7 @@ fn main() {
                     machine.shared_state.disc_color = color;
                     let event = Event::Error;
                     machine.transition(event);
-                } else if sorting::check_needed(&machine.shared_state.bin_status, &pattern_index, &color) {
+                } else if sorting::check_needed(&machine.shared_state.bin_status, output.clone(), &color) {
                     info!("Disc needed, sorting");
                     machine.shared_state.disc_color = color;
                     let event = Event::DiscNeeded;
@@ -103,7 +108,7 @@ fn main() {
             },
             State::Sorting => {
                 info!("Sorting item");
-                let bin = sorting::sort_disc(&machine.shared_state.bin_status, &pattern_index, &machine.shared_state.disc_color);
+                let bin = sorting::sort_disc(&machine.shared_state.bin_status, output.clone(), &machine.shared_state.disc_color);
                 motors::sort_arm(bin);
                 // wait for the sorting arms to move into position
                 std::thread::sleep(std::time::Duration::from_secs(sorting_time.clone()));
@@ -121,7 +126,7 @@ fn main() {
                 std::thread::sleep(std::time::Duration::from_millis(500)); // wait for new measurements
                 let color_values = get_nwst_color(&rx_color);
                 let color = detect_color::logic(color_values.0, color_values.1, color_values.2);
-                if sorting::check_needed(&machine.shared_state.bin_status, &pattern_index, &color) {
+                if sorting::check_needed(&machine.shared_state.bin_status, output.clone(), &color) {
                     info!("Disc needed after reanalysis, sorting");
                     machine.shared_state.disc_color = color;
                     let event = Event::DiscNeeded;
