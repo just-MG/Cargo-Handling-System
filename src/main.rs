@@ -61,7 +61,7 @@ fn main() {
             },
             State::Positioning => {
                 info!("Positioning the disc");
-                std::thread::sleep(std::time::Duration::from_millis(positioning_time.clone())); // Placeholder for positioning time
+                std::thread::sleep(std::time::Duration::from_millis(positioning_time.clone()));
                 motors::stop_conveyor();
                 let event = Event::DiscPositioned;
                 machine.transition(event);
@@ -81,6 +81,7 @@ fn main() {
                     let event = Event::Error;
                     machine.transition(event);
                 } else if sorting::check_needed(&machine.shared_state.bin_status, output.clone(), &color) {
+                    // disk is needed
                     info!("Disc needed, sorting");
                     machine.shared_state.disc_color = color;
                     let event = Event::DiscNeeded;
@@ -109,8 +110,7 @@ fn main() {
                 machine.transition(event);
             },
             State::Error => {
-                // handle error
-
+                
                 // use Event::ErrorCallBack to transition back to the previous state
                 let event = Event::ErrorCallBack;
                 machine.transition(event);
