@@ -29,16 +29,16 @@ impl ColorRange {
 /// 1 - black disk |
 /// -1 - conveyor belt |
 /// 2 - unknown object
-pub fn logic(red: i32, green: i32, blue: i32) -> i32 {
+pub fn logic(color_values:(i32, i32, i32)) -> i32 {
     // Initialize the ranges for each color
     let red_range = ColorRange::new((370, 420), (70, 140), (-30, 30));
     let green_range = ColorRange::new((320, 360), (20, 150), (-30, 30));
     let blue_range = ColorRange::new((400, 440), (150, 240), (-30, 30));
 
     // Classify each color component
-    let r = red_range.classify(red);
-    let g = green_range.classify(green);
-    let b = blue_range.classify(blue);
+    let r = red_range.classify(color_values.0);
+    let g = green_range.classify(color_values.1);
+    let b = blue_range.classify(color_values.2);
 
     // Match the classified results to determine the object type
     match (r, g, b) {

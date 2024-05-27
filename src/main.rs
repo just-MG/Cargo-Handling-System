@@ -29,14 +29,6 @@ fn main() {
     std::thread::sleep(std::time::Duration::from_secs(3)); // Wait for the serial connection to initialize
     info!("Serial connection initialized");
 
-    // DISTANCE sensor initialization
-    info!("Initializing distance sensor");
-    // TODO: Add distance sensor initialization here
-
-    // Motor initialization
-    info!("Initializing motors");
-    // TODO: Add motor initialization here
-
     // State maschine
     let mut machine = state_machine::StateMachine::new();
 
@@ -77,7 +69,7 @@ fn main() {
             State::Analyzing => {
                 info!("Analyzing the color of the disc");
                 let color_values = get_nwst_color(&rx_color);
-                let color = detect_color::logic(color_values.0, color_values.1, color_values.2);
+                let color = detect_color::logic(color_values);
 
                 if color == 2 { // color is unknown
                     warn!("Disc color unknown, reanalyzing");
@@ -118,16 +110,18 @@ fn main() {
             },
             State::Error => {
                 // handle error
-                
+
                 // use Event::ErrorCallBack to transition back to the previous state
                 let event = Event::ErrorCallBack;
                 machine.transition(event);
             },
             State::Reanalyzing => {
                 info!("Reanalyzing disc color");
+                // TODO: implement reanalysis, currently implemented just waiting for 500ms
+                // maybe move a bit forward or backwards
                 std::thread::sleep(std::time::Duration::from_millis(500)); // wait for new measurements
                 let color_values = get_nwst_color(&rx_color);
-                let color = detect_color::logic(color_values.0, color_values.1, color_values.2);
+                let color = detect_color::logic(color_values);
                 if sorting::check_needed(&machine.shared_state.bin_status, output.clone(), &color) {
                     info!("Disc needed after reanalysis, sorting");
                     machine.shared_state.disc_color = color;
