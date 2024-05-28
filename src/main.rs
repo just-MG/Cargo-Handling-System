@@ -25,7 +25,7 @@ fn main() {
     // COLOR detection initialization
     info!("Initializing color detection");
     let (tx_color, rx_color) = mpsc::channel();
-    color_sensor::initialize_serial(tx_color); // Start the serial connection in a separate thread
+    // color_sensor::initialize_serial(tx_color); // Start the serial connection in a separate thread
     std::thread::sleep(std::time::Duration::from_secs(3)); // Wait for the serial connection to initialize
     info!("Serial connection initialized");
 
@@ -36,9 +36,9 @@ fn main() {
     let sorting_time: u64 = 1; // time for the sorting arms to move into positions
     let positioning_time: u64 = 1; // time for the conveyor belt to position the disc under the color sensor
     let discarding_time: u64 = 1; // time for the discarding arm to move into position
-    let distance_sensor_threshold: f32 = 1.0; // distance sensor threshold for detecting an object
-    let distance_detection_rate: u64 = 1; // wait time between each distance sensor reading
-    let distance_detection_samples: u64 = 1; // number of samples taken and averaged by the distance sensor
+    let distance_sensor_threshold: f32 = 4.5; // distance sensor threshold for detecting an object
+    let distance_detection_rate: u64 = 100; // wait time between each distance sensor reading
+    let distance_detection_samples: u64 = 5; // number of samples taken and averaged by the distance sensor
 
     info!("Initialization complete");
     info!("Starting state machine");

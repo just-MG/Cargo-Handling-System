@@ -5,6 +5,7 @@ pub fn get_input() -> [[u8;5];3] {
     match mode {
         Ok(1) => input().unwrap(),
         // Ok(2) => predefined_input().unwrap(),
+        Ok(3) => {[[1,0,1,1,1],[1,0,1,0,1],[1,1,1,0,0]]},
         _ => {
             println!("Invalid input mode");
             [[0;5];3]
@@ -16,6 +17,7 @@ fn get_mode() -> io::Result<i32> {
     println!("Enter input mode: ");
     println!("1. Custom input");
     println!("2. Select from predefined inputs");
+    println!("3. Debug mode");
     let mut mode = String::new();
     io::stdin().read_line(&mut mode)?;
     let mode: i32 = mode.trim().parse().expect("Invalid input");
