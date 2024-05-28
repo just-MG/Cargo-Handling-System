@@ -3,8 +3,8 @@ use log::{debug, info};
 use hc_sr04::{HcSr04, Unit};
 
 pub fn get_distance(dd_rate: u64, dd_sample: u64) -> f32 {
-    // TRIGGER on GPIO Pin 7 & ECHO on GPIO Pin 11.
-    let mut ultrasonic = HcSr04::new(4, 17, None).unwrap();
+    // TRIGGER on GPIO Pin 14 & ECHO on GPIO Pin 15.
+    let mut ultrasonic = HcSr04::new(14, 15, None).unwrap();
     let mut distances: Vec<f32> = Vec::new();
 
     for _ in 0..dd_sample {

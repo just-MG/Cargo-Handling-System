@@ -5,12 +5,14 @@ use std::time::Duration;
 use rppal::gpio::Gpio;
 use rppal::system::DeviceInfo;
 
-const GPIO_2: u8 = 13; //The pin numbers are temporarirly incorrect! The correct numbers will be updated shortly (the raspberry pi has the correct numbers saved)!
-const GPIO_0: u8 = 11;
-const GPIO_7: u8 = 7;
-// for disracr arm
-const DIS1: u8 = 2; 
-const DIS2: u8 = 3; 
+const GPIO_2: u8 = 13; //In2 on shield
+//The pin numbers are temporarirly incorrect! The correct numbers will be updated shortly (the raspberry pi has the correct numbers saved)!
+const GPIO_0: u8 = 11; //In1 on shield
+const GPIO_7: u8 = 7; //ENA on shield
+// for discard arm
+const DIS1: u8 = 15; //In3 on shield
+const DIS2: u8 = 16; //In4 on shield
+const DISENB: u8 = 18; //ENB on shield
 
 //Servo initialization stuff
 const GPIO_PWM_0: u8 = 23; //again the correct pin number is temporarirly on the raspberry pi
