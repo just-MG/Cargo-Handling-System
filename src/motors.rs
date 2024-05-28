@@ -88,12 +88,12 @@ pub fn move_sort_arm_2(direction: i32) -> Result<(), Box<dyn Error>> {
 pub fn sort_arm(bin: i32) -> () {
     info!("Sorting item to bin: {}", bin);
     match bin {
-        1 => {move_sort_arm_1(0);}, // Move arm 1 to left,
-        2 => {
+        0 => {move_sort_arm_1(0);}, // Move arm 1 to left,
+        1 => {
             move_sort_arm_1(0); // Move arm 1 to left
             move_sort_arm_2(1); // Move arm 2 to right
         },
-        3 => {
+        2 => {
             move_sort_arm_1(0); // Move arm 1 to left
             move_sort_arm_2(0); // Move arm 2 to left
         },

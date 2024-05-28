@@ -17,6 +17,7 @@ Black disk: 1
 Other/unknown: 2 - the below code will not be called if disk is other or unknown
 */
 
+/// Finds to what bin should a disk go
 pub fn sort_disc(bins: &(Vec<i32>, Vec<i32>, Vec<i32>), output: [[u8; 5]; 3], disc: &i32) -> i32 {
     let next_bin1 = get_next_needed_bin(&bins.0, output, 0);
     let next_bin2 = get_next_needed_bin(&bins.1, output, 1);
@@ -41,6 +42,7 @@ pub fn sort_disc(bins: &(Vec<i32>, Vec<i32>, Vec<i32>), output: [[u8; 5]; 3], di
     return -1
 }
 
+/// Checks whether the disk is needed in any bin
 pub fn check_needed(bins: &(Vec<i32>, Vec<i32>, Vec<i32>), output: [[u8; 5]; 3], disc: &i32) -> bool {
     let next_bin1 = get_next_needed_bin(&bins.0, output, 0);
     let next_bin2 = get_next_needed_bin(&bins.1, output, 1);

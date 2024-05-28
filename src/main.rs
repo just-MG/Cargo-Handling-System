@@ -1,16 +1,16 @@
 use log::{info, debug, warn, error};
-mod serial_connection_con;
+mod color_sensor;
 mod detect_color;
 mod motors;
 mod sorting;
 mod state_machine;
 mod logging;
-mod dist_sensor;
+mod distance_sensor;
 mod input;
 
 use crate::state_machine::*;
 use std::sync::mpsc;
-use crate::serial_connection_con::get_nwst_color;
+use crate::color_sensor::get_nwst_color;
 
 fn main() {
     // Initialize logging
@@ -25,7 +25,7 @@ fn main() {
     // COLOR detection initialization
     info!("Initializing color detection");
     let (tx_color, rx_color) = mpsc::channel();
-    serial_connection_con::initialize_serial(tx_color); // Start the serial connection in a separate thread
+    color_sensor::initialize_serial(tx_color); // Start the serial connection in a separate thread
     std::thread::sleep(std::time::Duration::from_secs(3)); // Wait for the serial connection to initialize
     info!("Serial connection initialized");
 
@@ -44,10 +44,10 @@ fn main() {
     loop {
         match &machine.current_state {
             State::Detecting => {
-                motors::start_conveyor();
+                let _ = motors::start_conveyor();
                 info!("Conveyor started for detecting disc");
                 loop {
-                    let distance = dist_sensor::get_distance(); // Placeholder for the distance sensor value
+                    let distance = distance_sensor::get_distance(); // Placeholder for the distance sensor value
                     debug!("Checking distance: {}", distance);
                     if distance < distance_sensor_threshold {
                         info!("Disc detected at distance: {}", distance);
@@ -62,7 +62,7 @@ fn main() {
             State::Positioning => {
                 info!("Positioning the disc");
                 std::thread::sleep(std::time::Duration::from_millis(positioning_time.clone())); // Placeholder for positioning time
-                motors::stop_conveyor();
+                let _ = motors::stop_conveyor();
                 let event = Event::DiscPositioned;
                 machine.transition(event);
             },
@@ -93,7 +93,7 @@ fn main() {
             },
             State::Discarding => {
                 info!("Discarding item");
-                motors::discard_item();
+                let _ = motors::discard_item();
                 std::thread::sleep(std::time::Duration::from_secs(discarding_time.clone()));
                 let event = Event::DiscDiscarded;
                 machine.transition(event);
@@ -104,7 +104,7 @@ fn main() {
                 motors::sort_arm(bin);
                 // wait for the sorting arms to move into position
                 std::thread::sleep(std::time::Duration::from_secs(sorting_time.clone()));
-                motors::start_conveyor();
+                let _ = motors::start_conveyor();
                 let event = Event::DiscSorted;
                 machine.transition(event);
             },
