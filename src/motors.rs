@@ -45,6 +45,7 @@ pub fn stop_conveyor() -> Result<(), Box<dyn Error>> {
 /// direction: 0 - left, 1 - right
 pub fn move_sort_arm_1(direction: i32) -> Result<(), Box<dyn Error>> {
     info!("Moving motor 1 to direction: {}", direction);
+    println!("Moving motor 1 to direction: {}", direction);
     //Initialize servo
     let mut pin = Gpio::new()?.get(GPIO_PWM_0)?.into_output();
     if direction == 0 {
@@ -66,6 +67,7 @@ pub fn move_sort_arm_1(direction: i32) -> Result<(), Box<dyn Error>> {
 /// direction: 0 - left, 1 - right
 pub fn move_sort_arm_2(direction: i32) -> Result<(), Box<dyn Error>> {
     info!("Moving motor 2 to direction: {}", direction);
+    println!("Moving motor 2 to direction: {}", direction);
     //Initialize servo
     let mut pin = Gpio::new()?.get(GPIO_PWM_1)?.into_output();
     if direction == 0 {
@@ -87,6 +89,7 @@ pub fn move_sort_arm_2(direction: i32) -> Result<(), Box<dyn Error>> {
 /// Sets the sorting arms to the specified bin
 pub fn sort_arm(bin: i32) -> () {
     info!("Sorting item to bin: {}", bin);
+    println!("Sorting item to bin: {}", bin);
     match bin {
         0 => {move_sort_arm_1(0);}, // Move arm 1 to left,
         1 => {

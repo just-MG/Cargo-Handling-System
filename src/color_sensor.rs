@@ -10,6 +10,7 @@ pub fn initialize_serial(tx: mpsc::Sender<(i32, i32, i32)>) {
         let baud_rate = 9600; // Get the value of the "baud" argument and parse it as u32
 
         info!("Attempting to initialize serial port '{}' at baud rate '{}'", port_name, baud_rate);
+        println!("Attempting to initialize serial port '{}' at baud rate '{}'", port_name, baud_rate);
 
         let port = serialport::new(port_name, baud_rate) // Create a new serial port instance
             .timeout(Duration::from_millis(10)) // Set the read timeout to 10 milliseconds
@@ -18,6 +19,7 @@ pub fn initialize_serial(tx: mpsc::Sender<(i32, i32, i32)>) {
         match port {
             Ok(mut port) => { // If the serial port was successfully opened
                 info!("Serial port '{}' opened successfully.", port_name);
+                println!("Serial port '{}' opened successfully.", port_name);
                 let mut serial_buf: Vec<u8> = vec![0; 1000]; // Create a buffer to store received data
                 let mut received_data: Vec<u8> = Vec::new(); // Create a vector to store the received data
                 let mut color_values: Vec<Vec<i32>> = Vec::new(); // Create a vector to store the color values
@@ -38,9 +40,11 @@ pub fn initialize_serial(tx: mpsc::Sender<(i32, i32, i32)>) {
                         },
                         Err(ref e) if e.kind() == io::ErrorKind::TimedOut => {
                             warn!("Serial connection timeout.");
+                            println!("Serial connection timeout.");
                         },
                         Err(e) => {
                             error!("Error reading from serial port: {:?}", e);
+                            println!("Error reading from serial port: {:?}", e);
                         }
                     }
                     received_data.clear(); // Clear the received data vector
@@ -56,6 +60,7 @@ pub fn initialize_serial(tx: mpsc::Sender<(i32, i32, i32)>) {
             }
             Err(e) => { // If the serial port failed to open
                 error!("Failed to open serial port '{}'. Error: {:?}", port_name, e); // Log the error message
+                println!("Failed to open serial port '{}'. Error: {:?}", port_name, e);
                 ::std::process::exit(1);
             }
         }
@@ -123,5 +128,6 @@ pub fn get_nwst_color(rx: &mpsc::Receiver<(i32,i32,i32)>)->(i32,i32,i32) {
         }
     }
     info!("Newest color got: {:?}", color_values);
+    println!("Newest color got: {:?}", color_values);
     color_values
 }

@@ -14,6 +14,7 @@ pub fn get_distance(dd_rate: u64, dd_sample: u64) -> f32 {
             }
             Ok(None) => {
                 debug!("No distance result");
+                println!("No distance result");
                 return -1.0;
             }
             Err(e) => {
@@ -24,7 +25,9 @@ pub fn get_distance(dd_rate: u64, dd_sample: u64) -> f32 {
         std::thread::sleep(std::time::Duration::from_millis(dd_rate));
     }
     info!("Distances: {:?}", distances);
+    println!("Distances: {:?}", distances);
     info!("Average distance: {}", get_distance_average(&distances));
+    println!("Average distance: {}", get_distance_average(&distances));
     return get_distance_average(&distances);
 }
 

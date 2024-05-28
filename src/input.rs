@@ -8,7 +8,7 @@ pub fn get_input() -> [[u8;5];3] {
         Ok(3) => {[[1,0,1,1,1],[1,0,1,0,1],[1,1,1,0,0]]},
         _ => {
             println!("Invalid input mode");
-            [[0;5];3]
+            return get_input();
         }
     }
 }
