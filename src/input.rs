@@ -1,6 +1,7 @@
 use std::io::{self, Write};
 
 pub fn get_input() -> [[u8;5];3] {
+    println!("<------------------------------>");
     let mode = get_mode();
     match mode {
         Ok(1) => input().unwrap(),
