@@ -10,7 +10,6 @@ pub fn get_distance(dd_rate: u64, dd_sample: u64) -> f32 {
     for _ in 0..dd_sample {
         match ultrasonic.measure_distance(Unit::Centimeters) {
             Ok(Some(dist)) => {
-                info!("Distance got: {}", dist);
                 distances.push(dist);
             }
             Ok(None) => {
@@ -24,6 +23,8 @@ pub fn get_distance(dd_rate: u64, dd_sample: u64) -> f32 {
         }
         std::thread::sleep(std::time::Duration::from_millis(dd_rate));
     }
+    info!("Distances: {:?}", distances);
+    info!("Average distance: {}", get_distance_average(&distances));
     return get_distance_average(&distances);
 }
 
