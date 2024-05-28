@@ -26,15 +26,15 @@ pub fn sort_disc(bins: &(Vec<i32>, Vec<i32>, Vec<i32>), output: [[u8; 5]; 3], di
     // sort the disc
     // try the first bin
     if *disc == next_bin1 {
-        return 1;
+        return 0;
     } else {
         // try the second bin
         if *disc == next_bin2 {
-            return 2;
+            return 1
         } else {
             // try the third bin
             if *disc == next_bin3 {
-                return 3;
+                return 2;
             }
         }
     }
