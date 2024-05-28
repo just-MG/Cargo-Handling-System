@@ -33,11 +33,12 @@ fn main() {
     let mut machine = state_machine::StateMachine::new();
 
     // Robot IRL variables - all time in milliseconds
-    let sorting_time = 1; // time for the sorting arms to move into positions
-    let positioning_time = 1; // time for the conveyor belt to position the disc under the color sensor
-    let discarding_time = 1; // time for the discarding arm to move into position
-    let distance_sensor_threshold = 1.0; // distance sensor threshold for detecting an object
-    let distance_detection_rate = 1; // wait time between each distance sensor reading
+    let sorting_time: u64 = 1; // time for the sorting arms to move into positions
+    let positioning_time: u64 = 1; // time for the conveyor belt to position the disc under the color sensor
+    let discarding_time: u64 = 1; // time for the discarding arm to move into position
+    let distance_sensor_threshold: f32 = 1.0; // distance sensor threshold for detecting an object
+    let distance_detection_rate: u64 = 1; // wait time between each distance sensor reading
+    let distance_detection_samples: u64 = 1; // number of samples taken and averaged by the distance sensor
 
     info!("Initialization complete");
     info!("Starting state machine");
@@ -47,7 +48,8 @@ fn main() {
                 let _ = motors::start_conveyor();
                 info!("Conveyor started for detecting disc");
                 loop {
-                    let distance = distance_sensor::get_distance(); // Placeholder for the distance sensor value
+                    let distance = distance_sensor::get_distance(distance_detection_rate.clone(),
+                        distance_detection_samples.clone()); // Placeholder for the distance sensor value
                     debug!("Checking distance: {}", distance);
                     if distance < distance_sensor_threshold {
                         info!("Disc detected at distance: {}", distance);
