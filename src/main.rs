@@ -7,6 +7,7 @@ mod state_machine;
 mod logging;
 mod distance_sensor;
 mod input;
+mod motors_con;
 
 use crate::state_machine::*;
 use std::sync::mpsc;
@@ -34,6 +35,12 @@ fn main() {
     info!("Serial connection initialized");
     println!("Serial connection initialized");
 
+    // Motors initialization
+    info!("Initializing motors");
+    println!("Initializing motors");
+    let (tx_motors, rx_motors) = mpsc::channel();
+    motors_con::initialize_motors(rx_motors); // Start the motors in a separate thread
+
     // State maschine
     let mut machine = state_machine::StateMachine::new();
 
@@ -52,7 +59,7 @@ fn main() {
     loop {
         match &machine.current_state {
             State::Detecting => {
-                let _ = motors::start_conveyor();
+                tx_motors.send((1, 100));
                 info!("Conveyor started for detecting disc");
                 println!("Conveyor started for detecting disc");
                 loop {
