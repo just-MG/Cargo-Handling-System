@@ -1,14 +1,15 @@
 use std::error::Error;
 use std::thread;
 use std::time::Duration;
+use log::{info};
 
 use rppal::gpio::Gpio;
 use rppal::system::DeviceInfo;
 
-const GPIO_2: u8 = 13; //In2 on shield
-//The pin numbers are temporarirly incorrect! The correct numbers will be updated shortly (the raspberry pi has the correct numbers saved)!
-const GPIO_0: u8 = 11; //In1 on shield
-const GPIO_7: u8 = 7; //ENA on shield
+const GPIO_17: u8 = 17; //In2 on shield
+// const GPIO_0: u8 = 4; //In1 on shield
+const GPIO_27: u8 = 27; //ENA on shield
+
 // for discard arm
 const DIS1: u8 = 15; //In3 on shield
 const DIS2: u8 = 16; //In4 on shield
@@ -22,24 +23,20 @@ const PULSE_MIN_US: u64 = 1200;
 const PULSE_NEUTRAL_US: u64 = 1500;
 const PULSE_MAX_US: u64 = 1800;
 
-use log::{error, info};
-
-// let mut pin7 = Gpio::new()?.get(GPIO_7)?.into_output();
-
 // CONVEYOR
 pub fn start_conveyor() -> Result<(), Box<dyn Error>> {
-    let mut pin2 = Gpio::new()?.get(GPIO_2)?.into_output();
-    let mut pin0 = Gpio::new()?.get(GPIO_0)?.into_output();
-    pin2.set_high();
-    pin0.set_low();
+    let mut pin17 = Gpio::new()?.get(GPIO_17)?.into_output();
+    let mut pin27 = Gpio::new()?.get(GPIO_27)?.into_output();
+    pin17.set_high();
+    pin27.set_low();
     Ok(())
 }
 
 pub fn stop_conveyor() -> Result<(), Box<dyn Error>> {
-    let mut pin2 = Gpio::new()?.get(GPIO_2)?.into_output();
-    let mut pin0 = Gpio::new()?.get(GPIO_0)?.into_output();
-    pin2.set_low();
-    pin0.set_low();
+    let mut pin17 = Gpio::new()?.get(GPIO_17)?.into_output();
+    let mut pin27 = Gpio::new()?.get(GPIO_27)?.into_output();
+    pin17.set_low();
+    pin27.set_low();
     Ok(())
 }
 
