@@ -26,15 +26,13 @@ pub fn get_distance(dd_rate: u64, dd_sample: u64) -> f32 {
     }
     info!("Distances: {:?}", distances);
     println!("Distances: {:?}", distances);
-    info!("Average distance: {}", get_distance_average(&distances));
-    println!("Average distance: {}", get_distance_average(&distances));
-    return get_distance_average(&distances);
+    info!("Median of distances: {}", get_median(&mut distances));
+    println!("Median of distances: {}", get_median(&mut distances));
+    return get_median(&mut distances);
 }
 
-fn get_distance_average(distances :&Vec<f32>) -> f32 {
-    let mut sum: f32 = 0.0;
-    for distance in distances {
-        sum += distance;
-    }
-    return sum / distances.len() as f32;
+// Calculates median of distances. Works only for odd number of distances.
+fn get_median(distances: &mut [f32]) -> f32 {
+    distances.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    distances[distances.len() / 2]
 }
