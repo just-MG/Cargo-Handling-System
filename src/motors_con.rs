@@ -19,13 +19,14 @@ pub fn initialize_motors(rx: mpsc::Receiver<(i32, u64)>) -> () {
                 loop {
                     start_conveyor(&command.1);
                     let command = get_nwst_command(&rx);
-                    if command.1 == 0 {
+                    if command.0 == 0 {
                         break;
                     }
                 }
             }
-            }
-        });
+            std::thread::sleep(Duration::from_millis(100));
+        }
+    });
 }
 
 fn start_conveyor(time: &u64) -> Result<(), Box<dyn Error>> {

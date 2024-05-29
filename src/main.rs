@@ -82,7 +82,7 @@ fn main() {
                 info!("Positioning the disc");
                 println!("Positioning the disc");
                 std::thread::sleep(std::time::Duration::from_millis(positioning_time.clone())); // Placeholder for positioning time
-                let _ = motors::stop_conveyor();
+                tx_motors.send((0,0));
                 let event = Event::DiscPositioned;
                 machine.transition(event);
             },
@@ -132,7 +132,7 @@ fn main() {
                 motors::sort_arm(bin);
                 // wait for the sorting arms to move into position
                 std::thread::sleep(std::time::Duration::from_secs(sorting_time.clone()));
-                let _ = motors::start_conveyor();
+                tx_motors.send((1,100));
                 let event = Event::DiscSorted;
                 machine.transition(event);
             },
