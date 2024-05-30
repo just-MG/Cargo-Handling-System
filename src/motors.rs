@@ -16,11 +16,9 @@ const DIS2: u8 = 16; //In4 on shield
 const DISENB: u8 = 18; //ENB on shield
 
 //Servo initialization stuff
-const GPIO_PWM_0: u8 = 23; //again the correct pin number is temporarirly on the raspberry pi
-const GPIO_PWM_1: u8 = 21; //again the correct pin number is temporarirly on the raspberry pi
+const GPIO_PWM_1: u8 = 5; // left servo - arm1
+const GPIO_PWM_2: u8 = 6; // right servo - arm2
 const PERIOD_MS: u64 = 20;
-const PULSE_MIN_US: u64 = 500;
-const PULSE_MAX_US: u64 = 2500;
 
 // CONVEYOR
 pub fn start_conveyor() -> Result<(), Box<dyn Error>> {
@@ -45,19 +43,21 @@ pub fn move_sort_arm_1(direction: i32) -> Result<(), Box<dyn Error>> {
     info!("Moving motor 1 to direction: {}", direction);
     println!("Moving motor 1 to direction: {}", direction);
     //Initialize servo
-    let mut pin = Gpio::new()?.get(GPIO_PWM_0)?.into_output();
+    let mut pin1 = Gpio::new()?.get(GPIO_PWM_1)?.into_output();
     if direction == 0 {
         //Rotate the servo
-        pin.set_pwm(
+        pin1.set_pwm(
             Duration::from_millis(PERIOD_MS),
-            Duration::from_micros(PULSE_MAX_US),
+            Duration::from_millis(2),
         )?;
+        thread::sleep(Duration::from_millis(1100));
     }
     if direction == 1 {
-        pin.set_pwm(
+        pin1.set_pwm(
             Duration::from_millis(PERIOD_MS),
-            Duration::from_micros(PULSE_MIN_US),
+            Duration::from_millis(2),
         )?;
+        thread::sleep(Duration::from_millis(3000));
     } 
     Ok(())
 }
@@ -67,19 +67,21 @@ pub fn move_sort_arm_2(direction: i32) -> Result<(), Box<dyn Error>> {
     info!("Moving motor 2 to direction: {}", direction);
     println!("Moving motor 2 to direction: {}", direction);
     //Initialize servo
-    let mut pin = Gpio::new()?.get(GPIO_PWM_1)?.into_output();
+    let mut pin2 = Gpio::new()?.get(GPIO_PWM_2)?.into_output();
     if direction == 0 {
         //Rotate the servo
-        pin.set_pwm(
+        pin2.set_pwm(
             Duration::from_millis(PERIOD_MS),
-            Duration::from_micros(PULSE_MAX_US),
+            Duration::from_millis(2),
         )?;
+        thread::sleep(Duration::from_millis(1100));
     }
     if direction == 1 {
-        pin.set_pwm(
+        pin2.set_pwm(
             Duration::from_millis(PERIOD_MS),
-            Duration::from_micros(PULSE_MIN_US),
+            Duration::from_millis(2),
         )?;
+        thread::sleep(Duration::from_millis(3000));
     }
     Ok(())
 }
@@ -89,7 +91,7 @@ pub fn sort_arm(bin: i32) -> () {
     info!("Sorting item to bin: {}", bin);
     println!("Sorting item to bin: {}", bin);
     match bin {
-        0 => {move_sort_arm_1(0);}, // Move arm 1 to left,
+        0 => {move_sort_arm_1(1);}, // Move arm 1 to right,
         1 => {
             move_sort_arm_1(0); // Move arm 1 to left
             move_sort_arm_2(1); // Move arm 2 to right
