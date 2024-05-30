@@ -19,9 +19,8 @@ const DISENB: u8 = 18; //ENB on shield
 const GPIO_PWM_0: u8 = 23; //again the correct pin number is temporarirly on the raspberry pi
 const GPIO_PWM_1: u8 = 21; //again the correct pin number is temporarirly on the raspberry pi
 const PERIOD_MS: u64 = 20;
-const PULSE_MIN_US: u64 = 1200;
-const PULSE_NEUTRAL_US: u64 = 1500;
-const PULSE_MAX_US: u64 = 1800;
+const PULSE_MIN_US: u64 = 500;
+const PULSE_MAX_US: u64 = 2500;
 
 // CONVEYOR
 pub fn start_conveyor() -> Result<(), Box<dyn Error>> {
