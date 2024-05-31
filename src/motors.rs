@@ -48,16 +48,16 @@ pub fn move_sort_arm_1(direction: i32) -> Result<(), Box<dyn Error>> {
         //Rotate the servo
         pin1.set_pwm(
             Duration::from_millis(PERIOD_MS),
-            Duration::from_millis(2),
+            Duration::from_micros(900),
         )?;
-        thread::sleep(Duration::from_millis(1100));
+        thread::sleep(Duration::from_millis(100));
     }
     if direction == 1 {
         pin1.set_pwm(
             Duration::from_millis(PERIOD_MS),
-            Duration::from_millis(2),
+            Duration::from_micros(1450),
         )?;
-        thread::sleep(Duration::from_millis(3000));
+        thread::sleep(Duration::from_millis(100));
     } 
     Ok(())
 }
@@ -72,16 +72,16 @@ pub fn move_sort_arm_2(direction: i32) -> Result<(), Box<dyn Error>> {
         //Rotate the servo
         pin2.set_pwm(
             Duration::from_millis(PERIOD_MS),
-            Duration::from_millis(2),
+            Duration::from_micros(1000),
         )?;
-        thread::sleep(Duration::from_millis(1100));
+        thread::sleep(Duration::from_millis(100));
     }
     if direction == 1 {
         pin2.set_pwm(
             Duration::from_millis(PERIOD_MS),
-            Duration::from_millis(2),
+            Duration::from_micros(1800),
         )?;
-        thread::sleep(Duration::from_millis(3000));
+        thread::sleep(Duration::from_millis(100));
     }
     Ok(())
 }
@@ -91,14 +91,21 @@ pub fn sort_arm(bin: i32) -> () {
     info!("Sorting item to bin: {}", bin);
     println!("Sorting item to bin: {}", bin);
     match bin {
-        0 => {move_sort_arm_1(1);}, // Move arm 1 to right,
+        0 => {move_sort_arm_2(1);
+	      thread::sleep(Duration::from_millis(200));
+	      move_sort_arm_1(1);
+    	     thread::sleep(Duration::from_millis(200));}, // Move arm 1 to right,
         1 => {
             move_sort_arm_1(0); // Move arm 1 to left
+    	    thread::sleep(Duration::from_millis(200));
             move_sort_arm_2(1); // Move arm 2 to right
+	    thread::sleep(Duration::from_millis(200));
         },
         2 => {
             move_sort_arm_1(0); // Move arm 1 to left
+	    thread::sleep(Duration::from_millis(200));
             move_sort_arm_2(0); // Move arm 2 to left
+	    thread::sleep(Duration::from_millis(200));
         },
         _ => (),
     }
