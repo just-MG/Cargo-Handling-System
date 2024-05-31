@@ -9,6 +9,7 @@ use rppal::system::DeviceInfo;
 const GPIO_17: u8 = 17; //In2 on shield
 // const GPIO_0: u8 = 4; //In1 on shield
 const GPIO_27: u8 = 27; //ENA on shield
+const GP_4: u8 = 4;
 
 // for discard arm
 const DIS1: u8 = 15; //In3 on shield
@@ -24,6 +25,11 @@ const PERIOD_MS: u64 = 20;
 pub fn start_conveyor() -> Result<(), Box<dyn Error>> {
     let mut pin17 = Gpio::new()?.get(GPIO_17)?.into_output();
     let mut pin27 = Gpio::new()?.get(GPIO_27)?.into_output();
+    let mut pin_hold = Gpio::new()?.get(GP_4)?.into_output();
+    pin_hold.set_pwm(
+        Duration::from_millis(50),
+        Duration::from_millis(20),
+    )?;
     pin17.set_high();
     pin27.set_low();
     Ok(())
@@ -35,7 +41,7 @@ pub fn stop_conveyor() -> Result<(), Box<dyn Error>> {
     pin17.set_low();
     pin27.set_low();
     Ok(())
-}
+} 
 
 // SORTING ARMS
 /// direction: 0 - left, 1 - right

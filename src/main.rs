@@ -10,8 +10,11 @@ mod input;
 mod motors_con;
 
 use crate::state_machine::*;
-use std::sync::mpsc;
+use std::sync::{mpsc, Arc, Mutex};
 use crate::color_sensor::get_nwst_color;
+use std::thread;
+use rppal::gpio::Gpio;
+use crate::motors::{start_conveyor, stop_conveyor};
 
 fn main() {
     // Initialize logging
@@ -26,6 +29,45 @@ fn main() {
     info!("Input received: {:?}", output);
     println!("Input received: {:?}", output);
 
+    // Conveyer Thread stuff
+    // Create a shared flag to indicate whether the conveyor should be running
+    let running = Arc::new(Mutex::new(false));
+    let running_clone = Arc::clone(&running);
+
+    // Start a thread to manage the conveyor belt
+    thread::spawn(move || {
+        loop {
+            let should_run = {
+                let lock = running_clone.lock().unwrap();
+                *lock
+            };
+            if should_run {
+                // Continuously call start_conveyor while it should be running
+                if let Err(e) = start_conveyor() {
+                    eprintln!("Failed to start conveyor: {}", e);
+                }
+            } else {
+                // Stop the conveyor if it should not be running
+                if let Err(e) = stop_conveyor() {
+                    eprintln!("Failed to stop conveyor: {}", e);
+                }
+            }
+            thread::sleep(Duration::from_millis(100)); // Adjust the sleep duration as needed
+        }
+    });
+
+    // Function to start the conveyor
+    fn start_conveyor_control(running: &Arc<Mutex<bool>>) {
+        let mut run = running.lock().unwrap();
+        *run = true;
+    }
+
+    // Function to stop the conveyor
+    fn stop_conveyor_control(running: &Arc<Mutex<bool>>) {
+        let mut run = running.lock().unwrap();
+        *run = false;
+    }
+
     // COLOR detection initialization
     info!("Initializing color detection");
     println!("Initializing color detection");
@@ -35,20 +77,14 @@ fn main() {
     info!("Serial connection initialized");
     println!("Serial connection initialized");
 
-    // Motors initialization
-    info!("Initializing motors");
-    println!("Initializing motors");
-    let (tx_motors, rx_motors) = mpsc::channel();
-    motors_con::initialize_motors(rx_motors); // Start the motors in a separate thread
-
     // State maschine
     let mut machine = state_machine::StateMachine::new();
 
     // Robot IRL variables - all time in milliseconds
     let sorting_time: u64 = 1; // time for the sorting arms to move into positions
-    let positioning_time: u64 = 1; // time for the conveyor belt to position the disc under the color sensor
+    let positioning_time: u64 = 2500; // time for the conveyor belt to position the disc under the color sensor
     let discarding_time: u64 = 1; // time for the discarding arm to move into position
-    let distance_sensor_threshold: f32 = 4.5; // distance sensor threshold for detecting an object
+    let distance_sensor_threshold: f32 = 3.6; // distance sensor threshold for detecting an object
     let distance_detection_rate: u64 = 100; // wait time between each distance sensor reading
     let distance_detection_samples: u64 = 5; // number of samples taken and averaged by the distance sensor
 
@@ -59,7 +95,7 @@ fn main() {
     loop {
         match &machine.current_state {
             State::Detecting => {
-                tx_motors.send((1, 100));
+                start_conveyor_control(&running);
                 info!("Conveyor started for detecting disc");
                 println!("Conveyor started for detecting disc");
                 loop {
@@ -82,7 +118,7 @@ fn main() {
                 info!("Positioning the disc");
                 println!("Positioning the disc");
                 std::thread::sleep(std::time::Duration::from_millis(positioning_time.clone())); // Placeholder for positioning time
-                tx_motors.send((0,0));
+                stop_conveyor_control(&running);
                 let event = Event::DiscPositioned;
                 machine.transition(event);
             },
@@ -132,7 +168,7 @@ fn main() {
                 motors::sort_arm(bin);
                 // wait for the sorting arms to move into position
                 std::thread::sleep(std::time::Duration::from_secs(sorting_time.clone()));
-                tx_motors.send((1,100));
+                start_conveyor_control(&running);
                 let event = Event::DiscSorted;
                 machine.transition(event);
             },
