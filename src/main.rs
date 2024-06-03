@@ -17,7 +17,6 @@ use std::thread;
 use crate::motors::{start_conveyor, stop_conveyor};
 
 fn main() {
-	println!("kurwa");
     // Initialize logging
     logging::setup_logging().expect("Failed to initialize logging");
     info!("Begin initialization");
@@ -169,12 +168,7 @@ fn main() {
                 println!("Sorting item");
                 let bin = sorting::sort_disc(&machine.shared_state.bin_status, output.clone(), &machine.shared_state.disc_color);
                 motors::sort_arm(bin);
-                match bin {
-                    0 => {machine.shared_state.bin_status.0.push(machine.shared_state.disc_color);}
-                    1 => {machine.shared_state.bin_status.1.push(machine.shared_state.disc_color);}
-                    2 => {machine.shared_state.bin_status.2.push(machine.shared_state.disc_color);}
-                    _ => ()
-                }
+                machine.shared_state.bin_status[bin as usize].push(machine.shared_state.disc_color);
                 start_conveyor_control(&running);
                 let event = Event::DiscSorted;
                 machine.transition(event);

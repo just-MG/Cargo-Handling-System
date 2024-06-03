@@ -9,7 +9,7 @@ impl StateMachine {
         StateMachine {
             current_state: State::Detecting,
             shared_state: SharedState {
-                bin_status: (Vec::new(), Vec::new(), Vec::new()),
+                bin_status: [Vec::new(), Vec::new(), Vec::new()],
                 prev_state: State::Detecting,
                 disc_color: 2
             },
@@ -85,7 +85,7 @@ pub enum Event {
 
 // Define the shared state
 pub struct SharedState {
-    pub bin_status: (Vec<i32>, Vec<i32>, Vec<i32>),
+    pub bin_status: [Vec<i32>; 3],
     pub prev_state: State,
     pub disc_color: i32
 }
