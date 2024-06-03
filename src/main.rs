@@ -117,7 +117,7 @@ fn main() {
             State::Positioning => {
                 info!("Positioning the disc");
                 println!("Positioning the disc");
-                std::thread::sleep(std::time::Duration::from_millis(positioning_time.clone())); // Placeholder for positioning time
+                std::thread::sleep(std::time::Duration::from_millis(positioning_time.clone()));
                 stop_conveyor_control(&running);
                 let event = Event::DiscPositioned;
                 machine.transition(event);
@@ -127,6 +127,8 @@ fn main() {
                 println!( "Analyzing the color of the disc");
                 let color_values = get_nwst_color(&rx_color);
                 let color = detect_color::logic(color_values);
+                info!("Color classified: {:?}", color);
+                println!("Color classified: {:?}", color);
 
                 if color == 2 { // color is unknown
                     warn!("Disc color unknown, reanalyzing");
