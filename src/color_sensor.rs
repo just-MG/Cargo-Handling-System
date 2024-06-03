@@ -4,17 +4,18 @@ use std::thread;
 use std::sync::mpsc;
 use log::*;
 
+
 pub fn initialize_serial(tx: mpsc::Sender<(i32, i32, i32)>) {
     thread::spawn(move || {
-        let port_name: &str = "/dev/ttyUSB0"; // Get the value of the "port" argument
-        let baud_rate = 9600; // Get the value of the "baud" argument and parse it as u32
+        let port_name: &str = "/dev/ttyUSB0"; // Name of the port the Arduino Uno is connected to
+        let baud_rate = 9600; // The baud rate of the connection, 9600
 
         info!("Attempting to initialize serial port '{}' at baud rate '{}'", port_name, baud_rate);
         println!("Attempting to initialize serial port '{}' at baud rate '{}'", port_name, baud_rate);
 
         let port = serialport::new(port_name, baud_rate) // Create a new serial port instance
-            .timeout(Duration::from_millis(10)) // Set the read timeout to 10 milliseconds
-            .open(); // Open the serial port
+            .timeout(Duration::from_millis(100)) // Set the read timeout to 100 milliseconds
+            .open();
 
         match port {
             Ok(mut port) => { // If the serial port was successfully opened
@@ -26,15 +27,15 @@ pub fn initialize_serial(tx: mpsc::Sender<(i32, i32, i32)>) {
                 loop {
                     match port.read(serial_buf.as_mut_slice()) { // Read data from the serial port into the buffer
                         Ok(t) => {
-                            debug!("Read {} bytes from serial port.", t);
                             received_data.extend_from_slice(&serial_buf[..t]); // Append the received data to the vector
-                            if received_data.len() <= 19 && received_data[0] == 123 && received_data[received_data.len()-3] == 125 { // Check if the vector does not contain more than one result
-                                let result = received_data.clone(); // Save the received data to a variable
-                                color_values.push(convert_serial_color(result)); // Append the converted color values to the color values vector
+                            // Check if the vector does not contain more than one result
+                            if received_data.len() <= 19 && received_data[0] == 123 && received_data[received_data.len()-3] == 125 {
+                                // Append the converted color values to the color values vector
+                                color_values.push(convert_serial_color(received_data.clone())); 
                             } else {
                                 // If the vector contains more than one result, clear the vector
-                                if color_values.len() > 19 {
-                                    color_values.clear();
+                                if received_data.len() > 19 {
+                                    received_data.clear();
                                 }
                             }
                         },
@@ -47,21 +48,24 @@ pub fn initialize_serial(tx: mpsc::Sender<(i32, i32, i32)>) {
                             println!("Error reading from serial port: {:?}", e);
                         }
                     }
+
                     received_data.clear(); // Clear the received data vector
                     thread::sleep(Duration::from_millis(50));
 
+                    // assure the color_values vector contains no more than 5 newest results
                     if color_values.len() > 5 {
                         color_values.remove(0);
                     }
+                    // only send data to the main thread if the is data available
                     if !color_values.is_empty() {
                         tx.send(average_color_values(color_values.clone())).unwrap();
                     }
                 }
             }
             Err(e) => { // If the serial port failed to open
-                error!("Failed to open serial port '{}'. Error: {:?}", port_name, e); // Log the error message
+                error!("Failed to open serial port '{}'. Error: {:?}", port_name, e);
                 println!("Failed to open serial port '{}'. Error: {:?}", port_name, e);
-                ::std::process::exit(1);
+                ::std::process::exit(1); // exit the program, robot cannot work without the color sensor
             }
         }
     });
@@ -81,10 +85,10 @@ fn average_color_values(color_values: Vec<Vec<i32>>) -> (i32, i32, i32) {
     if length == 0 {
         return (-1000, -1000, -1000); // indicate no data available
     }
-    // println!("{:?}", (average_r / length as i32, average_g / length as i32, average_b / length as i32));
     (average_r / length as i32, average_g / length as i32, average_b / length as i32)
 }
 
+/// Converts the data recieved from the Arduino Uno via the Serial connection into the RGB color values. 
 fn convert_serial_color(serial: Vec<u8>) -> Vec<i32> {
     let mut color_values: Vec<i32> = Vec::new();
     let truncated_serial = &serial[1..serial.len()-3]; // Truncate the serial vector to remove the first and last 3 values
@@ -98,9 +102,7 @@ fn convert_serial_color(serial: Vec<u8>) -> Vec<i32> {
             negative = true; // Set the negative flag to true
         }
         if byte == 59 { // If the byte is a semicolon
-            // println!("-{:?}", color);
             let color_string: String = color.iter().map(|&c| c as char).collect(); // Convert the color vector to a string
-            // println!("--{:?}", color_string);
             let color_value: i32 = color_string.parse().unwrap(); // Parse the color string as an integer
             if negative {
                 color_values.push(color_value * -1); // Append the negative color value to the color values vector
@@ -115,6 +117,9 @@ fn convert_serial_color(serial: Vec<u8>) -> Vec<i32> {
     [color_values[0], color_values[1], color_values[2]].to_vec() // Return the color values as a tuple
 }
 
+/// Function of the main thread. 
+/// Retrieves the most recently send color values vector;
+/// from the color sensing thread to the main thread.
 pub fn get_nwst_color(rx: &mpsc::Receiver<(i32,i32,i32)>)->(i32,i32,i32) {
     let mut color_values: (i32,i32,i32) = (0,0,0);
     loop {
