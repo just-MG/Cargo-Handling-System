@@ -7,7 +7,6 @@ mod state_machine;
 mod logging;
 mod distance_sensor;
 mod input;
-mod motors_con;
 
 use crate::state_machine::*;
 use std::sync::{mpsc, Arc, Mutex};
