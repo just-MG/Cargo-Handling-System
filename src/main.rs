@@ -52,7 +52,7 @@ fn main() {
                     eprintln!("Failed to stop conveyor: {}", e);
                 }
             }
-            thread::sleep(Duration::from_millis(100)); // Adjust the sleep duration as needed
+            thread::sleep(std::time::Duration::from_millis(100)); // Adjust the sleep duration as needed
         }
     });
 
@@ -81,7 +81,7 @@ fn main() {
     let mut machine = state_machine::StateMachine::new();
 
     // Robot IRL variables - all time in milliseconds
-    let sorting_time: u64 = 1; // time for the sorting arms to move into positions
+    // let sorting_time: u64 = 1; // time for the sorting arms to move into positions
     let positioning_time: u64 = 2500; // time for the conveyor belt to position the disc under the color sensor
     let discarding_time: u64 = 1; // time for the discarding arm to move into position
     let distance_sensor_threshold: f32 = 3.6; // distance sensor threshold for detecting an object
@@ -157,7 +157,7 @@ fn main() {
                 info!("Discarding item");
                 println!("Discarding item");
                 let _ = motors::discard_item();
-                std::thread::sleep(std::time::Duration::from_secs(discarding_time.clone()));
+                std::thread::sleep(std::time::Duration::from_millis(discarding_time.clone()));
                 let event = Event::DiscDiscarded;
                 machine.transition(event);
             },
@@ -166,8 +166,12 @@ fn main() {
                 println!("Sorting item");
                 let bin = sorting::sort_disc(&machine.shared_state.bin_status, output.clone(), &machine.shared_state.disc_color);
                 motors::sort_arm(bin);
-                // wait for the sorting arms to move into position
-                std::thread::sleep(std::time::Duration::from_secs(sorting_time.clone()));
+                match bin {
+                    0 => {machine.shared_state.bin_status.0.push(machine.shared_state.disc_color);}
+                    1 => {machine.shared_state.bin_status.1.push(machine.shared_state.disc_color);}
+                    2 => {machine.shared_state.bin_status.2.push(machine.shared_state.disc_color);}
+                    _ => ()
+                }
                 start_conveyor_control(&running);
                 let event = Event::DiscSorted;
                 machine.transition(event);
