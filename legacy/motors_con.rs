@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::thread;
 use std::time::Duration;
-use log::{info};
+use log::info;
 use std::sync::mpsc;
 
 use rppal::gpio::Gpio;

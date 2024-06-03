@@ -9,13 +9,15 @@ mod distance_sensor;
 mod input;
 
 use crate::state_machine::*;
-use std::sync::{mpsc, Arc, Mutex};
+use std::sync::mpsc;
 use crate::color_sensor::get_nwst_color;
+use std::time::Duration;
+use std::sync::{Arc, Mutex};
 use std::thread;
-use rppal::gpio::Gpio;
 use crate::motors::{start_conveyor, stop_conveyor};
 
 fn main() {
+	println!("kurwa");
     // Initialize logging
     logging::setup_logging().expect("Failed to initialize logging");
     info!("Begin initialization");
@@ -28,9 +30,8 @@ fn main() {
     info!("Input received: {:?}", output);
     println!("Input received: {:?}", output);
 
-    // Conveyer Thread stuff
-    // Create a shared flag to indicate whether the conveyor should be running
-    let running = Arc::new(Mutex::new(false));
+    //Conveyor Thread shit
+   let running = Arc::new(Mutex::new(false));
     let running_clone = Arc::clone(&running);
 
     // Start a thread to manage the conveyor belt
@@ -51,7 +52,7 @@ fn main() {
                     eprintln!("Failed to stop conveyor: {}", e);
                 }
             }
-            thread::sleep(std::time::Duration::from_millis(100)); // Adjust the sleep duration as needed
+            thread::sleep(Duration::from_millis(100)); // Adjust the sleep duration as needed
         }
     });
 
@@ -66,6 +67,7 @@ fn main() {
         let mut run = running.lock().unwrap();
         *run = false;
     }
+   
 
     // COLOR detection initialization
     info!("Initializing color detection");
@@ -80,11 +82,11 @@ fn main() {
     let mut machine = state_machine::StateMachine::new();
 
     // Robot IRL variables - all time in milliseconds
-    // let sorting_time: u64 = 1; // time for the sorting arms to move into positions
-    let positioning_time: u64 = 2500; // time for the conveyor belt to position the disc under the color sensor
-    let discarding_time: u64 = 1; // time for the discarding arm to move into position
-    let distance_sensor_threshold: f32 = 3.6; // distance sensor threshold for detecting an object
-    let distance_detection_rate: u64 = 100; // wait time between each distance sensor reading
+    let sorting_time: u64 = 3000; // time for the sorting arms to move into positions
+    let positioning_time: u64 = 2750; // time for the conveyor belt to position the disc under the color sensor
+    let discarding_time: u64 = 10; // time for the discarding arm to move into position
+    let distance_sensor_threshold: f32 = 2.5; // distance sensor threshold for detecting an object
+    let distance_detection_rate: u64 = 75; // wait time between each distance sensor reading
     let distance_detection_samples: u64 = 5; // number of samples taken and averaged by the distance sensor
 
     info!("Initialization complete");
@@ -98,7 +100,7 @@ fn main() {
                 info!("Conveyor started for detecting disc");
                 println!("Conveyor started for detecting disc");
                 loop {
-                    let distance = distance_sensor::get_distance(distance_detection_rate.clone(),
+	                let distance = distance_sensor::get_distance(distance_detection_rate.clone(),
                         distance_detection_samples.clone()); // Placeholder for the distance sensor value
                     debug!("Checking distance: {}", distance);
                     if distance < distance_sensor_threshold {
@@ -116,8 +118,9 @@ fn main() {
             State::Positioning => {
                 info!("Positioning the disc");
                 println!("Positioning the disc");
-                std::thread::sleep(std::time::Duration::from_millis(positioning_time.clone()));
-                stop_conveyor_control(&running);
+                std::thread::sleep(std::time::Duration::from_millis(positioning_time.clone())); // Placeholder for positioning time
+               // motors::stop_conveyor();
+		stop_conveyor_control(&running);
                 let event = Event::DiscPositioned;
                 machine.transition(event);
             },
@@ -126,9 +129,8 @@ fn main() {
                 println!( "Analyzing the color of the disc");
                 let color_values = get_nwst_color(&rx_color);
                 let color = detect_color::logic(color_values);
-                info!("Color classified: {:?}", color);
-                println!("Color classified: {:?}", color);
-
+		info!("Disk color: {:?}", color);
+		println!("Disk color: {:?}", color);
                 if color == 2 { // color is unknown
                     warn!("Disc color unknown, reanalyzing");
                     println!("Disc color unknown, reanalyzing");
@@ -178,7 +180,7 @@ fn main() {
                 machine.transition(event);
             },
             State::Error => {
-                
+                std::thread::sleep(std::time::Duration::from_millis(100));
                 // use Event::ErrorCallBack to transition back to the previous state
                 let event = Event::ErrorCallBack;
                 machine.transition(event);
