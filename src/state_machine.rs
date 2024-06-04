@@ -11,7 +11,8 @@ impl StateMachine {
             shared_state: SharedState {
                 bin_status: [Vec::new(), Vec::new(), Vec::new()],
                 prev_state: State::Detecting,
-                disc_color: 2
+                disc_color: 2,
+                error: -1,
             },
         }
     }
@@ -64,6 +65,10 @@ impl StateMachine {
                 self.current_state = self.shared_state.prev_state;
                 self.shared_state.prev_state = Error;
             },
+            (Error, Event::Restart) => {
+                self.current_state = Detecting;
+                self.shared_state.prev_state = Error;
+            },
             _ => (),
         }
     }
@@ -78,16 +83,17 @@ pub enum Event {
     DiscUnknown,
     DiscDiscarded,
     DiscSorted,
-    // MultipleElements,
-    Error, // placeholder? for all errors
+    Error,
     ErrorCallBack,
+    Restart
 }
 
 // Define the shared state
 pub struct SharedState {
     pub bin_status: [Vec<i32>; 3],
     pub prev_state: State,
-    pub disc_color: i32
+    pub disc_color: i32,
+    pub error: i32
 }
 
 // Define the states with access to the shared state

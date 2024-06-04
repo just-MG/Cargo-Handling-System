@@ -14,6 +14,20 @@ pub fn get_input() -> [[u8;5];3] {
     }
 }
 
+pub fn continue_input() -> bool {
+    println!("Do you want to continue? (y/n)");
+    let mut cont = String::new();
+    io::stdin().read_line(&mut cont).expect("Failed to read line");
+    match cont.trim() {
+        "y" => true,
+        "n" => false,
+        _ => {
+            println!("Invalid input. Please enter 'y' or 'n'.");
+            continue_input()
+        }
+    }
+}
+
 fn get_mode() -> io::Result<i32> {
     println!("Enter input mode: ");
     println!("1. Custom input");

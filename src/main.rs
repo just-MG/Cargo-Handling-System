@@ -7,6 +7,8 @@ mod state_machine;
 mod logging;
 mod distance_sensor;
 mod input;
+mod errors;
+mod error_lcd;
 
 use crate::state_machine::*;
 use std::sync::mpsc;
@@ -107,6 +109,16 @@ fn main() {
                         println!("Disc detected at distance: {}", distance);
                         break;
                     }
+                    // check if the color sensor detects a colored disk
+                    // if so, the distance sensor must've failed to detect the disk
+                    if errors::check_color_sensor_detects(get_nwst_color(&rx_color)) {
+                        // ERROR 31
+                        error!("ERROR31: Error in distance detection, moving to error state");
+                        println!("ERROR31: Error in distance detection, moving to error state");
+                        machine.shared_state.error = 31;
+                        let event = Event::Error;
+                        machine.transition(event);
+                    }
                     std::thread::sleep(std::time::Duration::from_millis(distance_detection_rate.clone()));
                 }
                 let event = Event::DiscDetected;
@@ -118,8 +130,7 @@ fn main() {
                 info!("Positioning the disc");
                 println!("Positioning the disc");
                 std::thread::sleep(std::time::Duration::from_millis(positioning_time.clone())); // Placeholder for positioning time
-               // motors::stop_conveyor();
-		stop_conveyor_control(&running);
+		        stop_conveyor_control(&running);
                 let event = Event::DiscPositioned;
                 machine.transition(event);
             },
@@ -128,17 +139,20 @@ fn main() {
                 println!( "Analyzing the color of the disc");
                 let color_values = get_nwst_color(&rx_color);
                 let color = detect_color::logic(color_values);
-		info!("Disk color: {:?}", color);
-		println!("Disk color: {:?}", color);
+
+                info!("Disk color: {:?}", color);
+                println!("Disk color: {:?}", color);
                 if color == 2 { // color is unknown
                     warn!("Disc color unknown, reanalyzing");
                     println!("Disc color unknown, reanalyzing");
                     let event = Event::DiscUnknown;
                     machine.transition(event);
                 } else if color == -1 { // color is conveyor
-                    error!("Error in color detection, moving to error state");
-                    println!("Error in color detection, moving to error state");
+                    // ERROR 21
+                    error!("ERROR21: Error during color detection, moving to error state");
+                    println!("ERROR21: Error during color detection, moving to error state");
                     machine.shared_state.disc_color = color;
+                    machine.shared_state.error = 21;
                     let event = Event::Error;
                     machine.transition(event);
                 } else if sorting::check_needed(&machine.shared_state.bin_status, output.clone(), &color) {
@@ -169,12 +183,45 @@ fn main() {
                 let bin = sorting::sort_disc(&machine.shared_state.bin_status, output.clone(), &machine.shared_state.disc_color);
                 motors::sort_arm(bin);
                 machine.shared_state.bin_status[bin as usize].push(machine.shared_state.disc_color);
+                // check if the robot completed its task
+                errors::check_completion(&machine.shared_state.bin_status);
                 start_conveyor_control(&running);
                 let event = Event::DiscSorted;
                 machine.transition(event);
             },
             State::Error => {
-                std::thread::sleep(std::time::Duration::from_millis(100));
+                match machine.shared_state.error {
+                    31 => {
+                        let _ = error_lcd::display_error(31);
+                        // wait for the press of a button to continue
+                        // TODO: implement button press
+                        // go to the default state, after the issue has been fixed (button pressed)
+                        let _ = error_lcd::display_clear();
+                        let event = Event::Restart;
+                        machine.transition(event);
+                    },
+                    21 => {
+                        let _ = error_lcd::display_error(21);
+                        // wait for the press of a button to continue
+                        // TODO: implement button press
+                        // go to the default state, after the issue has been fixed (button pressed)
+                        let _ = error_lcd::display_clear();
+                        let event = Event::Restart;
+                        machine.transition(event);
+
+                    },
+                    _ => {
+                        error!("Unknown error occurred");
+                        println!("Unknown error occurred");
+                        let to_continue = input::continue_input();
+                        if to_continue {
+                            let event = Event::Restart;
+                            machine.transition(event);
+                        } else {
+                            std::process::exit(1);
+                        }
+                    }
+                }
                 // use Event::ErrorCallBack to transition back to the previous state
                 let event = Event::ErrorCallBack;
                 machine.transition(event);
