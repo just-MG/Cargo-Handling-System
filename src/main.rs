@@ -201,20 +201,22 @@ fn main() {
             State::Error => {
                 match machine.shared_state.error {
                     31 => {
-                        let _ = error_lcd::display_error(31);
+                        // let _ = error_lcd::display_error(31);
                         // wait for the press of a button to continue
                         // TODO: implement button press
                         // go to the default state, after the issue has been fixed (button pressed)
-                        let _ = error_lcd::display_clear();
+                        // let _ = error_lcd::display_clear();
+                        std::thread::sleep(std::time::Duration::from_secs(5));
                         let event = Event::Restart;
                         machine.transition(event);
                     },
                     21 => {
-                        let _ = error_lcd::display_error(21);
+                        // let _ = error_lcd::display_error(21);
                         // wait for the press of a button to continue
                         // TODO: implement button press
                         // go to the default state, after the issue has been fixed (button pressed)
-                        let _ = error_lcd::display_clear();
+                        // let _ = error_lcd::display_clear();
+                        std::thread::sleep(std::time::Duration::from_secs(5));
                         let event = Event::Restart;
                         machine.transition(event);
 

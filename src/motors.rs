@@ -17,6 +17,7 @@ const DIS2: u8 = 16; //In4 on shield
 const GPIO_PWM_0: u8 = 5;
 const GPIO_PWM_1: u8 = 6;
 const PERIOD_MS: u64 = 20;
+const GPIO_SEP: u8 = 26;
 
 // CONVEYOR
 pub fn start_conveyor() -> Result<(), Box<dyn Error>> {
