@@ -24,15 +24,15 @@ impl StateMachine {
             (Detecting, Event::DiscDetected) => {
                 self.current_state = Positioning;
                 self.shared_state.prev_state = self.current_state;
-            },
+            }
             (Positioning, Event::DiscPositioned) => {
                 self.current_state = Analyzing;
                 self.shared_state.prev_state = self.current_state;
-            },
+            }
             (Analyzing, Event::DiscNeeded) => {
                 self.current_state = Sorting;
                 self.shared_state.prev_state = self.current_state;
-            },
+            }
             (Analyzing, Event::DiscNotNeeded) => {
                 self.current_state = Discarding;
                 self.shared_state.prev_state = self.current_state;
@@ -40,39 +40,39 @@ impl StateMachine {
             (Analyzing, Event::DiscUnknown) => {
                 self.current_state = Reanalyzing;
                 self.shared_state.prev_state = self.current_state;
-            },
+            }
             (Discarding, Event::DiscDiscarded) => {
                 self.current_state = Detecting;
                 self.shared_state.prev_state = self.current_state;
-            },
+            }
             (Sorting, Event::DiscSorted) => {
                 self.current_state = Detecting;
                 self.shared_state.prev_state = self.current_state;
-            },
+            }
             (Reanalyzing, Event::DiscUnknown) => {
                 self.current_state = Discarding;
                 self.shared_state.prev_state = self.current_state;
-            },
+            }
             (Reanalyzing, Event::DiscNeeded) => {
                 self.current_state = Sorting;
                 self.shared_state.prev_state = self.current_state;
-            },
+            }
             (Reanalyzing, Event::DiscNotNeeded) => {
                 self.current_state = Discarding;
                 self.shared_state.prev_state = self.current_state;
-            },
+            }
             (Error, Event::ErrorCallBack) => {
                 self.current_state = self.shared_state.prev_state;
                 self.shared_state.prev_state = self.current_state;
-            },
+            }
             (Error, Event::Restart) => {
                 self.current_state = Detecting;
                 self.shared_state.prev_state = self.current_state;
-            },
+            }
             (_, Event::Error) => {
                 self.current_state = Error;
                 self.shared_state.prev_state = self.current_state;
-            },
+            }
             _ => (),
         }
     }
@@ -89,7 +89,7 @@ pub enum Event {
     DiscSorted,
     Error,
     ErrorCallBack,
-    Restart
+    Restart,
 }
 
 // Define the shared state
@@ -97,7 +97,7 @@ pub struct SharedState {
     pub bin_status: [Vec<i32>; 3],
     pub prev_state: State,
     pub disc_color: i32,
-    pub error: i32
+    pub error: i32,
 }
 
 // Define the states with access to the shared state
@@ -109,5 +109,5 @@ pub enum State {
     Reanalyzing,
     Discarding,
     Sorting,
-    Error
+    Error,
 }

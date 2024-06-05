@@ -1,7 +1,7 @@
 // File used for all functions related to error handling, when such functions are needed
 use crate::detect_color;
-use log::error;
 use crate::error_lcd;
+use log::error;
 
 /// Function that checks if the bins are full,
 /// which means the robot completed it's task.

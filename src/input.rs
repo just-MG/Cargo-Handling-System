@@ -1,12 +1,12 @@
 use std::io::{self, Write};
 
-pub fn get_input() -> [[u8;5];3] {
+pub fn get_input() -> [[u8; 5]; 3] {
     println!("<------------------------------>");
     let mode = get_mode();
     match mode {
         Ok(1) => input().unwrap(),
         // Ok(2) => predefined_input().unwrap(),
-        Ok(3) => {[[1,0,1,1,1],[1,0,1,0,1],[1,1,1,0,0]]},
+        Ok(3) => [[1, 0, 1, 1, 1], [1, 0, 1, 0, 1], [1, 1, 1, 0, 0]],
         _ => {
             println!("Invalid input mode");
             return get_input();
@@ -17,7 +17,9 @@ pub fn get_input() -> [[u8;5];3] {
 pub fn continue_input() -> bool {
     println!("Do you want to continue? (y/n)");
     let mut cont = String::new();
-    io::stdin().read_line(&mut cont).expect("Failed to read line");
+    io::stdin()
+        .read_line(&mut cont)
+        .expect("Failed to read line");
     match cont.trim() {
         "y" => true,
         "n" => false,
@@ -44,12 +46,12 @@ fn input() -> io::Result<[[u8; 5]; 3]> {
     println!("Color values: 0 - white, 1 - black");
     println!("Sample input: 1 1 0 0 0");
     println!("Discs are placed in the bins bottom to top");
-    let mut arr: [[u8;5];3] = [[0;5];3];
+    let mut arr: [[u8; 5]; 3] = [[0; 5]; 3];
     for i in 0..3 {
         loop {
             let mut row = String::new();
             print!("Enter the values for bin {}: ", i);
-            io::stdout().flush()?;  // Flush stdout to ensure the prompt is displayed before read_line
+            io::stdout().flush()?; // Flush stdout to ensure the prompt is displayed before read_line
             io::stdin().read_line(&mut row)?;
             let row: Result<Vec<u8>, _> = row.split_whitespace().map(|s| s.parse()).collect();
             match row {
@@ -67,17 +69,17 @@ fn input() -> io::Result<[[u8; 5]; 3]> {
     println!("Real world representation:");
     for i in 0..5 {
         for j in 0..3 {
-            print!("{} ", map(arr[j][4-i]));
+            print!("{} ", map(arr[j][4 - i]));
         }
-        println!();  // Print a newline at the end of each row
+        println!(); // Print a newline at the end of each row
     }
     Ok(arr)
 }
 
-fn map (x: u8) -> char {
+fn map(x: u8) -> char {
     match x {
         0 => 'O',
         1 => 'X',
-        _ => ' '
+        _ => ' ',
     }
 }
