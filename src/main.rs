@@ -86,6 +86,7 @@ fn main() {
     let sorting_time: u64 = 3000; // time for the sorting arms to move into positions
     let positioning_time: u64 = 2750; // time for the conveyor belt to position the disc under the color sensor
     let discarding_time: u64 = 10; // time for the discarding arm to move into position
+    let conveyor_discard_time: u64 = 500; // time for the conveyor belt to move the disc to the discarding area
     let distance_sensor_threshold: f32 = 2.5; // distance sensor threshold for detecting an object
     let distance_detection_rate: u64 = 75; // wait time between each distance sensor reading
     let distance_detection_samples: u64 = 5; // number of samples taken and averaged by the distance sensor
@@ -170,8 +171,13 @@ fn main() {
                 }
             },
             State::Discarding => {
-                info!("Discarding item");
-                println!("Discarding item");
+                info!("Moving the disk to the discarding area");
+                println!("Moving the disk to the discarding area");
+                start_conveyor_control(&running);
+                std::thread::sleep(std::time::Duration::from_millis(conveyor_discard_time.clone()));
+                stop_conveyor_control(&running);
+                info!("Discarding the disk");
+                println!("Discarding the disk");
                 let _ = motors::discard_item();
                 std::thread::sleep(std::time::Duration::from_millis(discarding_time.clone()));
                 let event = Event::DiscDiscarded;
