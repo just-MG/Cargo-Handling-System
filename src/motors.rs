@@ -128,5 +128,34 @@ pub fn discard_item() -> Result<(), Box<dyn Error>>{
     mot1.set_low();
     mot2.set_high();
     thread::sleep(Duration::from_millis(300));
+    info!("Moving separation servo up");
+    println!("Moving separation servo up");
+	separate_input(0);
+    Ok(())
+}
+
+// INPUT SEPARATION
+pub fn separate_input(direction: i32) -> Result<(), Box<dyn Error>> {
+    //Initialize servo
+    let mut pin = Gpio::new()?.get(GPIO_SEP)?.into_output();
+    if direction == 0 { // up
+	//info!("Moving separation servo up");
+        //println!("Moving separation servo up");
+        //Rotate the servo
+        pin.set_pwm(
+            Duration::from_millis(PERIOD_MS),
+            Duration::from_micros(2000),
+        )?;
+	thread::sleep(Duration::from_millis(100));
+    }
+    if direction == 1 { // down
+	//info!("Moving separation servo down");
+        //println!("Moving separation servo down");
+        pin.set_pwm(
+            Duration::from_millis(PERIOD_MS),
+            Duration::from_micros(1000),
+        )?;
+	thread::sleep(Duration::from_millis(100));
+    } 
     Ok(())
 }
