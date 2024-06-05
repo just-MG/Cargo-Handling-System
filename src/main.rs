@@ -108,6 +108,9 @@ fn main() {
                     if distance < distance_sensor_threshold {
                         info!("Disc detected at distance: {}", distance);
                         println!("Disc detected at distance: {}", distance);
+                        info!("Moving separation servo down");
+			            println!("Moving separation servo down");
+			            motors::separate_input(1);
                         break;
                     }
                     // check if the color sensor detects a colored disk
