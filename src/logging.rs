@@ -1,6 +1,6 @@
+use chrono::{DateTime, Local};
 use fern::Dispatch;
 use log::LevelFilter;
-use chrono::{Local, DateTime};
 use std::fs::File;
 
 pub fn setup_logging() -> Result<(), fern::InitError> {
@@ -10,8 +10,7 @@ pub fn setup_logging() -> Result<(), fern::InitError> {
     let log_file_name = format!("logs/run_{}.log", timestamp);
 
     // Create log file explicitly to handle errors here
-    let log_file = File::create(&log_file_name)
-        .expect("Failed to create log file");
+    let log_file = File::create(&log_file_name).expect("Failed to create log file");
 
     // Configure fern
     Dispatch::new()
