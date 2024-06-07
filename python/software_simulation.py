@@ -98,7 +98,7 @@ class Robot:
                 try:
                     disk = custom_mapping(self.bins[j][4-i])
                 except IndexError:
-                    disk = ""
+                    disk = " "
                 print(disk, end=" ")
             print()
         print()
@@ -122,10 +122,11 @@ while True:
     print("2. Visualize robot")
     print("3. Place disk")
     print("4. Exit")
+    print("5. Restart")
     try:
         action = int(input("Action: "))
-        if action not in [1, 2, 3, 4]:
-            print("Invalid input. Please enter a number between 1 and 4.")
+        if action not in [1, 2, 3, 4, 5]:
+            print("Invalid input. Please enter a number between 1 and 5.")
             continue
     except ValueError:
         print("Invalid input. Please enter a numeric value.")
@@ -155,3 +156,7 @@ while True:
                 print("Invalid input. Please enter 0 or 1.")
         case 4:
             break
+        case 5:
+            mode = get_input_mode()
+            user_input = get_input(mode)
+            robot = Robot(user_input)
