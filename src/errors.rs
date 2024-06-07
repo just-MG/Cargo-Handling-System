@@ -30,7 +30,7 @@ fn check_bins_full(bins: &[Vec<i32>; 3]) -> bool {
 /// Used to check for ERROR 31.
 pub fn check_color_sensor_detects(color_values: (i32, i32, i32)) -> bool {
     let color = detect_color::logic(color_values);
-    if color != -1 && color != 2 {
+    if color == 1 || color == 0 {
         return true;
     }
     return false;
