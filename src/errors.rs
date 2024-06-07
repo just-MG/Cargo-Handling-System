@@ -28,10 +28,18 @@ fn check_bins_full(bins: &[Vec<i32>; 3]) -> bool {
 
 /// Function to check if the color sensor detects a colored disk.
 /// Used to check for ERROR 31.
-/// ERROR 31
 pub fn check_color_sensor_detects(color_values: (i32, i32, i32)) -> bool {
     let color = detect_color::logic(color_values);
     if color != -1 && color != 2 {
+        return true;
+    }
+    return false;
+}
+
+/// Function to check if the color sensor detects an erroneous color.
+/// Used to check for ERROR 25.
+pub fn check_color_sensor_erroneous(color_values: &(i32, i32, i32)) -> bool {
+    if color_values.0 >= 500 || color_values.1 >= 500 || color_values.2 >= 500 {
         return true;
     }
     return false;

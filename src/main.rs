@@ -78,7 +78,7 @@ fn main() {
     info!("Serial connection initialized");
     println!("Serial connection initialized");
 
-    // State maschine
+    // State machine
     let mut machine = state_machine::StateMachine::new();
 
     // Robot IRL variables - all time in milliseconds
@@ -146,6 +146,15 @@ fn main() {
                 info!("Analyzing the color of the disc");
                 println!("Analyzing the color of the disc");
                 let color_values = get_nwst_color(&rx_color);
+                // check for erroneous color detection
+                if errors::check_color_sensor_erroneous(&color_values) {
+                    // ERROR 25
+                    error!("ERROR25: Error during color detection, moving to error state");
+                    println!("ERROR25: Error during color detection, moving to error state");
+                    machine.shared_state.error = 25;
+                    let event = Event::Error;
+                    machine.transition(event);
+                }
                 let color = detect_color::logic(color_values);
 
                 info!("Disk color: {:?}", color);
@@ -253,6 +262,15 @@ fn main() {
 		        println!("Here");
 		        stop_conveyor_control(&running);
                 let color_values = get_nwst_color(&rx_color);
+                // check for erroneous color detection
+                if errors::check_color_sensor_erroneous(&color_values) {
+                    // ERROR 25
+                    error!("ERROR25: Error during color detection, moving to error state");
+                    println!("ERROR25: Error during color detection, moving to error state");
+                    machine.shared_state.error = 25;
+                    let event = Event::Error;
+                    machine.transition(event);
+                }
                 let color = detect_color::logic(color_values);
                 if color == 1 { // ERROR 21
                     error!("ERROR21: Error during color detection, moving to error state");
