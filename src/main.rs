@@ -82,7 +82,6 @@ fn main() {
     let mut machine = state_machine::StateMachine::new();
 
     // Robot IRL variables - all time in milliseconds
-    let sorting_time: u64 = 3000; // time for the sorting arms to move into positions
     let positioning_time: u64 = 2750; // time for the conveyor belt to position the disc under the color sensor
     let discarding_time: u64 = 10; // time for the discarding arm to move into position
     let conveyor_discard_time: u64 = 500; // time for the conveyor belt to move the disc to the discarding area
@@ -100,7 +99,7 @@ fn main() {
                 start_conveyor_control(&running);
                 info!("Conveyor started for detecting disc");
                 println!("Conveyor started for detecting disc");
-                motors::separate_input(0);
+                let _ = motors::separate_input(0);
                 loop {
                     let distance = distance_sensor::get_distance(
                         distance_detection_rate.clone(),
@@ -112,7 +111,7 @@ fn main() {
                         println!("Disc detected at distance: {}", distance);
                         info!("Moving separation servo down");
                         println!("Moving separation servo down");
-                        motors::separate_input(1);
+                        let _ = motors::separate_input(1);
                         break;
                     }
                     // check if the color sensor detects a colored disk
@@ -215,43 +214,37 @@ fn main() {
                 machine.transition(event);
             }
             State::Error => {
-                match machine.shared_state.error {
-                    31 => {
-                        // let _ = error_lcd::display_error(31);
-                        // wait for the press of a button to continue
-                        // TODO: implement button press
-                        // go to the default state, after the issue has been fixed (button pressed)
-                        // let _ = error_lcd::display_clear();
-                        std::thread::sleep(std::time::Duration::from_millis(10000));
-                        // let _ = error_lcd::display_clear();
+                let error: u32 = machine.shared_state.error as u32;
+                let restart_errors = [21, 31];
+                let callback_errors = [25];
+
+                if !(restart_errors.contains(&error) || callback_errors.contains(&error)) {
+                    error!("Unknown error occurred");
+                    println!("Unknown error occurred");
+                    let to_continue = input::continue_input();
+                    if to_continue {
                         let event = Event::Restart;
                         machine.transition(event);
-                    }
-                    21 => {
-                        // let _ = error_lcd::display_error(21);
-                        // wait for the press of a button to continue
-                        // TODO: implement button press
-                        // go to the default state, after the issue has been fixed (button pressed)
-                        // let _ = error_lcd::display_clear();
-                        std::thread::sleep(std::time::Duration::from_millis(10000));
-                        let event = Event::Restart;
-                        machine.transition(event);
-                    }
-                    _ => {
-                        error!("Unknown error occurred");
-                        println!("Unknown error occurred");
-                        let to_continue = input::continue_input();
-                        if to_continue {
-                            let event = Event::Restart;
-                            machine.transition(event);
-                        } else {
-                            std::process::exit(1);
-                        }
+                    } else {
+                        std::process::exit(1);
                     }
                 }
-                // use Event::ErrorCallBack to transition back to the previous state
-                let event = Event::ErrorCallBack;
-                machine.transition(event);
+
+                let _ = error_lcd::display_error(&error);
+
+                // wait for the press of a button to continue
+                // TODO: implement button press
+
+                let _ = error_lcd::display_clear();
+                std::thread::sleep(std::time::Duration::from_millis(10000)); // remove when button press is implemented
+
+                if restart_errors.contains(&error) {
+                    let event = Event::Restart;
+                    machine.transition(event);
+                } else {
+                    let event = Event::ErrorCallBack;
+                    machine.transition(event);
+                }
             }
             State::Reanalyzing => {
                 std::thread::sleep(std::time::Duration::from_millis(2000));

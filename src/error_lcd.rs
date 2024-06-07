@@ -1,6 +1,6 @@
 use lcd_pcf8574::{ErrorHandling, Pcf8574};
 
-pub fn display_error(error: u32) -> Result<(), Box<dyn std::error::Error>> {
+pub fn display_error(error: &u32) -> Result<(), Box<dyn std::error::Error>> {
     let bus = 1;
     let addr = 0x27;
 

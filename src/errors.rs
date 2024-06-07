@@ -10,7 +10,7 @@ pub fn check_completion(bins: &[Vec<i32>; 3]) -> () {
     if check_bins_full(bins) {
         println!("ERROR 0: Bins are full. Sorting completed.");
         error!("ERROR 0: Bins are full. Sorting completed.");
-        let _ = error_lcd::display_error(0);
+        let _ = error_lcd::display_error(&0);
         std::process::exit(0);
     }
 }

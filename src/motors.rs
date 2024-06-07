@@ -126,7 +126,7 @@ pub fn discard_item() -> Result<(), Box<dyn Error>> {
     thread::sleep(Duration::from_millis(300));
     info!("Moving separation servo up");
     println!("Moving separation servo up");
-    separate_input(0);
+    let _ = separate_input(0);
     Ok(())
 }
 
