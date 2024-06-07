@@ -33,9 +33,9 @@ impl ColorRange {
 /// 2 - unknown object
 pub fn logic(color_values: (i32, i32, i32)) -> i32 {
     // Initialize the ranges for each color
-    let red_range = ColorRange::new((370, 420), (70, 140), (-30, 30));
-    let green_range = ColorRange::new((320, 360), (20, 150), (-30, 30));
-    let blue_range = ColorRange::new((400, 440), (150, 240), (-30, 30));
+    let red_range = ColorRange::new((280, 400), (25, 110), (-15, 10));
+    let green_range = ColorRange::new((280, 350), (30, 120), (-17, 5));
+    let blue_range = ColorRange::new((270, 370), (18, 110), (-10, 10));
 
     // Classify each color component
     let r = red_range.classify(color_values.0);
