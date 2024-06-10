@@ -19,7 +19,10 @@ const GPIO_PWM_1: u8 = 6;
 const PERIOD_MS: u64 = 20;
 const GPIO_SEP: u8 = 26;
 
-// CONVEYOR
+/// Starts the conveyor by setting GPIO pins 17 and 27 accordingly.
+///
+/// # Returns
+/// * `Result<(), Box<dyn Error>>` - Returns an Ok result if the operation is successful, or an error if it fails.
 pub fn start_conveyor() -> Result<(), Box<dyn Error>> {
     let mut pin17 = Gpio::new()?.get(GPIO_17)?.into_output();
     let mut pin27 = Gpio::new()?.get(GPIO_27)?.into_output();
@@ -27,11 +30,13 @@ pub fn start_conveyor() -> Result<(), Box<dyn Error>> {
     pin_hold.set_pwm(Duration::from_millis(50), Duration::from_millis(20))?;
     pin17.set_low();
     pin27.set_high();
-    // thread::sleep(Duration::from_secs(15));
-    // pin27.set_low();
     Ok(())
 }
 
+/// Stops the conveyor by setting GPIO pins 17 and 27 to low.
+///
+/// # Returns
+/// * `Result<(), Box<dyn Error>>` - Returns an Ok result if the operation is successful, or an error if it fails.
 pub fn stop_conveyor() -> Result<(), Box<dyn Error>> {
     let mut pin17 = Gpio::new()?.get(GPIO_17)?.into_output();
     let mut pin27 = Gpio::new()?.get(GPIO_27)?.into_output();
@@ -40,8 +45,13 @@ pub fn stop_conveyor() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-// SORTING ARMS
-/// direction: 0 - left, 1 - right
+/// Moves the `first` sorting arm in the specified direction.
+///
+/// # Arguments
+/// * `direction` - An integer representing the direction to move the arm (0 for left, 1 for right).
+///
+/// # Returns
+/// * `Result<(), Box<dyn Error>>` - Returns an Ok result if the operation is successful, or an error if it fails.
 pub fn move_sort_arm_1(direction: i32) -> Result<(), Box<dyn Error>> {
     info!("Moving motor 1 to direction: {}", direction);
     println!("Moving motor 1 to direction: {}", direction);
@@ -62,7 +72,13 @@ pub fn move_sort_arm_1(direction: i32) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-/// direction: 0 - left, 1 - right
+/// Moves the `second` sorting arm in the specified direction.
+///
+/// # Arguments
+/// * `direction` - An integer representing the direction to move the arm (0 for left, 1 for right).
+///
+/// # Returns
+/// * `Result<(), Box<dyn Error>>` - Returns an Ok result if the operation is successful, or an error if it fails.
 pub fn move_sort_arm_2(direction: i32) -> Result<(), Box<dyn Error>> {
     info!("Moving motor 2 to direction: {}", direction);
     println!("Moving motor 2 to direction: {}", direction);
@@ -86,7 +102,10 @@ pub fn move_sort_arm_2(direction: i32) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-/// Sets the sorting arms to the specified bin
+/// Sets the sorting arms to the specified bin.
+///
+/// # Arguments
+/// * `bin` - An integer representing the bin number (0, 1, or 2).
 pub fn sort_arm(bin: i32) -> () {
     info!("Sorting item to bin: {}", bin);
     println!("Sorting item to bin: {}", bin);
@@ -113,7 +132,10 @@ pub fn sort_arm(bin: i32) -> () {
     }
 }
 
-// DISCARD MOTOR
+/// Discards an item by moving the discard motors.
+///
+/// # Returns
+/// * `Result<(), Box<dyn Error>>` - Returns an Ok result if the operation is successful, or an error if it fails.
 pub fn discard_item() -> Result<(), Box<dyn Error>> {
     let mut mot1 = Gpio::new()?.get(DIS1)?.into_output();
     let mut mot2 = Gpio::new()?.get(DIS2)?.into_output();
@@ -124,13 +146,19 @@ pub fn discard_item() -> Result<(), Box<dyn Error>> {
     mot1.set_low();
     mot2.set_high();
     thread::sleep(Duration::from_millis(300));
-    info!("Moving separation servo up");
-    println!("Moving separation servo up");
+    // info!("Moving separation servo up");
+    // println!("Moving separation servo up");
     let _ = separate_input(0);
     Ok(())
 }
 
-// INPUT SEPARATION
+/// Separates the input by moving the separation servo in the specified direction.
+///
+/// # Arguments
+/// * `direction` - An integer representing the direction to move the servo (0 for up, 1 for down).
+///
+/// # Returns
+/// * `Result<(), Box<dyn Error>>` - Returns an Ok result if the operation is successful, or an error if it fails.
 pub fn separate_input(direction: i32) -> Result<(), Box<dyn Error>> {
     //Initialize servo
     let mut pin = Gpio::new()?.get(GPIO_SEP)?.into_output();
@@ -138,7 +166,6 @@ pub fn separate_input(direction: i32) -> Result<(), Box<dyn Error>> {
         // up
         //info!("Moving separation servo up");
         //println!("Moving separation servo up");
-        //Rotate the servo
         pin.set_pwm(
             Duration::from_millis(PERIOD_MS),
             Duration::from_micros(2000),

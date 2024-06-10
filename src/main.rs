@@ -215,8 +215,8 @@ fn main() {
             }
             State::Error => {
                 let error: u32 = machine.shared_state.error as u32;
-                let restart_errors = [21, 31];
-                let callback_errors = [25];
+                let restart_errors = [21, 31]; // codes of the errors that require a restart
+                let callback_errors = [25]; // codes of the errors that require a callback
 
                 if !(restart_errors.contains(&error) || callback_errors.contains(&error)) {
                     error!("Unknown error occurred");

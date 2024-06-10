@@ -1,5 +1,20 @@
 use lcd_pcf8574::{ErrorHandling, Pcf8574};
 
+/// Displays an error message on a 2-line LCD connected via the PCF8574 I2C expander.
+///
+/// # Arguments
+///
+/// * `error` - A reference to a `u32` representing the error code to be displayed.
+///
+/// # Returns
+///
+/// A `Result<(), Box<dyn std::error::Error>>` indicating success or failure.
+///
+/// # Description
+///
+/// This function initializes the LCD display with 2 lines and 5x8 dots. It clears the display,
+/// sets the cursor to the home position, and prints the word "Error:" followed by the error code.
+/// The error handling mode is set to panic on errors.
 pub fn display_error(error: &u32) -> Result<(), Box<dyn std::error::Error>> {
     let bus = 1;
     let addr = 0x27;
@@ -27,6 +42,16 @@ pub fn display_error(error: &u32) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+/// Clears the display on a 2-line LCD connected via the PCF8574 I2C expander.
+///
+/// # Returns
+///
+/// A `Result<(), Box<dyn std::error::Error>>` indicating success or failure.
+///
+/// # Description
+///
+/// This function initializes the LCD display with 2 lines and 5x8 dots. It clears the display
+/// and sets the cursor to the home position. The error handling mode is set to panic on errors.
 pub fn display_clear() -> Result<(), Box<dyn std::error::Error>> {
     let bus = 1;
     let addr = 0x27;

@@ -1,4 +1,4 @@
-// Define a struct to hold the RGB color ranges for each classification
+/// A struct to hold the RGB color ranges for each classification.
 struct ColorRange {
     white: (i32, i32),
     black: (i32, i32),
@@ -6,7 +6,17 @@ struct ColorRange {
 }
 
 impl ColorRange {
-    /// Constructor for creating a new ColorRange instance
+    /// Creates a new `ColorRange` instance.
+    ///
+    /// # Arguments
+    ///
+    /// * `white` - A tuple representing the min and max values for the white range.
+    /// * `black` - A tuple representing the min and max values for the black range.
+    /// * `conveyor` - A tuple representing the min and max values for the conveyor range.
+    ///
+    /// # Returns
+    ///
+    /// A new `ColorRange` instance with the specified ranges.
     fn new(white: (i32, i32), black: (i32, i32), conveyor: (i32, i32)) -> Self {
         ColorRange {
             white,
@@ -15,7 +25,19 @@ impl ColorRange {
         }
     }
 
-    /// Method to classify a given color value into one of the predefined categories
+    /// Classifies a given color value into one of the predefined categories.
+    ///
+    /// # Arguments
+    ///
+    /// * `value` - The color value to be classified.
+    ///
+    /// # Returns
+    ///
+    /// An integer representing the classification:
+    /// * `1` for the white range.
+    /// * `2` for the black range.
+    /// * `3` for the conveyor range.
+    /// * `0` for an unknown category.
     fn classify(&self, value: i32) -> u8 {
         match value {
             _ if (self.white.0..=self.white.1).contains(&value) => 1, // White range
@@ -26,11 +48,19 @@ impl ColorRange {
     }
 }
 
-/// Main logic function to determine the classification based on RGB values. |
-/// 0 - white disk |
-/// 1 - black disk |
-/// -1 - conveyor belt |
-/// 2 - unknown object
+/// Determines the classification of an object based on RGB values.
+///
+/// # Arguments
+///
+/// * `color_values` - A tuple containing the RGB values as integers.
+///
+/// # Returns
+///
+/// An integer representing the object classification:
+/// * `0` for a white disk.
+/// * `1` for a black disk.
+/// * `-1` for the conveyor belt.
+/// * `2` for an unknown object.
 pub fn logic(color_values: (i32, i32, i32)) -> i32 {
     // Initialize the ranges for each color
     let red_range = ColorRange::new((280, 400), (25, 110), (-15, 10));

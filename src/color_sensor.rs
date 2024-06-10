@@ -4,6 +4,18 @@ use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
 
+/// Initializes the serial connection to the Arduino Uno and spawns a new thread to handle the data reception.
+///
+/// # Arguments
+///
+/// * `tx` - A `mpsc::Sender` used to send the averaged color values (RGB) from the serial thread to the main thread.
+///
+/// # Description
+///
+/// This function attempts to open a serial port connection to an Arduino Uno at a specified port and baud rate.
+/// Once the connection is established, it reads data from the port, processes the data to extract RGB values,
+/// and sends the averaged RGB values to the main thread using the provided `tx` channel. If the serial port
+/// cannot be opened, the function logs the error and exits the program.
 pub fn initialize_serial(tx: mpsc::Sender<(i32, i32, i32)>) {
     thread::spawn(move || {
         let port_name: &str = "/dev/ttyUSB0"; // Name of the port the Arduino Uno is connected to
@@ -62,11 +74,11 @@ pub fn initialize_serial(tx: mpsc::Sender<(i32, i32, i32)>) {
                     received_data.clear(); // Clear the received data vector
                     thread::sleep(Duration::from_millis(50));
 
-                    // assure the color_values vector contains no more than 5 newest results
+                    // Assure the color_values vector contains no more than 5 newest results
                     if color_values.len() > 5 {
                         color_values.remove(0);
                     }
-                    // only send data to the main thread if the is data available
+                    // Only send data to the main thread if there is data available
                     if !color_values.is_empty() {
                         tx.send(average_color_values(color_values.clone())).unwrap();
                     }
@@ -76,12 +88,21 @@ pub fn initialize_serial(tx: mpsc::Sender<(i32, i32, i32)>) {
                 // If the serial port failed to open
                 error!("Failed to open serial port '{}'. Error: {:?}", port_name, e);
                 println!("Failed to open serial port '{}'. Error: {:?}", port_name, e);
-                ::std::process::exit(1); // exit the program, robot cannot work without the color sensor
+                ::std::process::exit(1); // Exit the program, robot cannot work without the color sensor
             }
         }
     });
 }
 
+/// Calculates the average RGB values from a vector of RGB values.
+///
+/// # Arguments
+///
+/// * `color_values` - A vector of RGB values, where each RGB value is a vector of three integers (R, G, B).
+///
+/// # Returns
+///
+/// A tuple containing the average R, G, and B values as integers. If the input vector is empty, returns `(-1000, -1000, -1000)` to indicate no data is available.
 fn average_color_values(color_values: Vec<Vec<i32>>) -> (i32, i32, i32) {
     let mut average_r = 0;
     let mut average_g = 0;
@@ -93,7 +114,7 @@ fn average_color_values(color_values: Vec<Vec<i32>>) -> (i32, i32, i32) {
         average_b += vector[2];
     }
     if length == 0 {
-        return (-1000, -1000, -1000); // indicate no data available
+        return (-1000, -1000, -1000); // Indicate no data available
     }
     (
         average_r / length as i32,
@@ -102,7 +123,15 @@ fn average_color_values(color_values: Vec<Vec<i32>>) -> (i32, i32, i32) {
     )
 }
 
-/// Converts the data recieved from the Arduino Uno via the Serial connection into the RGB color values.
+/// Converts the data received from the Arduino Uno via the serial connection into RGB color values.
+///
+/// # Arguments
+///
+/// * `serial` - A vector of bytes received from the serial connection.
+///
+/// # Returns
+///
+/// A vector containing three integers representing the RGB color values.
 fn convert_serial_color(serial: Vec<u8>) -> Vec<i32> {
     let mut color_values: Vec<i32> = Vec::new();
     let truncated_serial = &serial[1..serial.len() - 3]; // Truncate the serial vector to remove the first and last 3 values
@@ -111,6 +140,7 @@ fn convert_serial_color(serial: Vec<u8>) -> Vec<i32> {
     for &byte in truncated_serial {
         // Iterate over the truncated serial vector
         if byte != 82 && byte != 71 && byte != 66 && byte != 59 && byte != 45 {
+            // If the byte is not an R, G, B, semicolon, or hyphen
             color.push(byte);
         }
         if byte == 45 {
@@ -134,9 +164,15 @@ fn convert_serial_color(serial: Vec<u8>) -> Vec<i32> {
     [color_values[0], color_values[1], color_values[2]].to_vec() // Return the color values as a tuple
 }
 
-/// Function of the main thread.
-/// Retrieves the most recently send color values vector;
-/// from the color sensing thread to the main thread.
+/// Retrieves the most recent color values from the receiver channel.
+///
+/// # Arguments
+///
+/// * `rx` - A reference to an `mpsc::Receiver` that receives the averaged RGB values from the serial thread.
+///
+/// # Returns
+///
+/// A tuple containing the most recently received R, G, and B values as integers.
 pub fn get_nwst_color(rx: &mpsc::Receiver<(i32, i32, i32)>) -> (i32, i32, i32) {
     let mut color_values: (i32, i32, i32) = (0, 0, 0);
     loop {
