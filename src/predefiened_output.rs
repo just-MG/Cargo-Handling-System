@@ -24,17 +24,12 @@ fn get_json_entry<P: AsRef<Path>>(file_path: P, key: char) -> Result<Option<Valu
     
 }
 
-pub fn get_predefined(index: char) -> Result<(), Box<dyn std::error::Error>> {
-    let file_path = "predefined_output\\predefined_output.JSON";
-
-    match get_json_entry(file_path, index)? {
-        Some(entry) => {
-            return Some(entry);
-        }
-        None => {
-            println!("No entry found for key '{}'", key);
-        }
-    }
-
-    Ok(())
+pub fn get_predefined(index: char) -> [[u8; 5]; 3] {
+    let file_path = "predefined_output/predefined_output.JSON";
+    let output = get_json_entry(file_path, index).unwrap();
+    let output_array: [[u8; 5]; 3] = match output {
+        Some(value) => serde_json::from_value(value).unwrap(),
+        None => panic!("Entry not found in JSON"),
+    };
+    output_array
 }

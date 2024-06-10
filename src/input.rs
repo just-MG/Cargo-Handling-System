@@ -1,13 +1,17 @@
 use std::io::{self, Write};
-use predefined_input::predefined_input;
+use crate::predefiened_output::{self, get_predefined};
 
 pub fn get_input() -> [[u8; 5]; 3] {
     println!("<------------------------------>");
     let mode = get_mode();
     match mode {
         Ok(1) => input().unwrap(),
-        Ok(2) => predefined_input::predefined_input().unwrap(),
-        Ok(3) => [[1, 0, 1, 1, 1], [1, 0, 1, 0, 1], [1, 1, 1, 0, 0]],
+        Ok(2) => get_user_selected_predefined_output(),
+        Ok(3) => {
+            // temporary implementation until JSON checked
+            let _ = get_user_selected_predefined_output();
+            return get_input();
+        },
         _ => {
             println!("Invalid input mode");
             return get_input();
@@ -29,6 +33,30 @@ pub fn continue_input() -> bool {
             continue_input()
         }
     }
+}
+
+fn get_user_char() -> char {
+    println!("Select the character/number you would like the robot to display");
+    loop {
+        let mut input = String::new();
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Failed to read line");
+        let input = input.trim();
+        if let Some(c) = input.chars().next() {
+            if c.is_alphanumeric() {
+                return c;
+            }
+        }
+        println!("Invalid input. Please enter a letter or a digit.");
+    }
+}
+
+fn get_user_selected_predefined_output() -> [[u8; 5]; 3] {
+    let index = get_user_char();
+    let output = predefiened_output::get_predefined(index);
+    visualise(output);
+    return output;
 }
 
 fn get_mode() -> io::Result<i32> {
@@ -66,14 +94,7 @@ fn input() -> io::Result<[[u8; 5]; 3]> {
             }
         }
     }
-    // Print the array
-    println!("Real world representation:");
-    for i in 0..5 {
-        for j in 0..3 {
-            print!("{} ", map(arr[j][4 - i]));
-        }
-        println!(); // Print a newline at the end of each row
-    }
+    visualise(arr);
     Ok(arr)
 }
 
@@ -82,5 +103,15 @@ fn map(x: u8) -> char {
         0 => 'O',
         1 => 'X',
         _ => ' ',
+    }
+}
+
+fn visualise(arr: [[u8; 5]; 3]) {
+    println!("Real world representation:");
+    for i in 0..5 {
+        for j in 0..3 {
+            print!("{} ", map(arr[j][4 - i]));
+        }
+        println!(); // Print a newline at the end of each row
     }
 }
