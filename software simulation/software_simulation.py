@@ -1,3 +1,5 @@
+import json
+
 def get_input_mode():
     print("<------------------------------>")
     print("Enter input mode: ")
@@ -38,8 +40,26 @@ def get_debug_input():
     return [[1, 0, 1, 1, 1], [1, 0, 1, 0, 1], [1, 1, 1, 0, 1]]
 
 def get_predefined_input():
-    # TODO: implement
-    return [[1, 1, 0, 0, 0], [1, 0, 1, 0, 0], [0, 0, 0, 1, 1]]
+    file_path = 'predefined output/predefined_output.JSON'
+    key = get_user_char()
+    with open(file_path, 'r') as file:
+        data = json.load(file)
+        if key in data:
+            return data[key]
+        else:
+            print(f"Key '{key}' not found in the JSON file.")
+            return None
+
+# Gets a character from the user
+# The character should be either a number or a capital letter
+def get_user_char():
+    while True:
+        char = input("Enter a character: ")
+        if len(char) == 1 and (char.isdigit() or char.isupper()):
+            return char
+        else:
+            print("Invalid input. Enter a single digit or a capital letter.")
+    
 
 def get_input(mode):
     match mode:
