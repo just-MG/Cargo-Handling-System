@@ -1,11 +1,12 @@
 use std::io::{self, Write};
+use predefined_input::predefined_input;
 
 pub fn get_input() -> [[u8; 5]; 3] {
     println!("<------------------------------>");
     let mode = get_mode();
     match mode {
         Ok(1) => input().unwrap(),
-        // Ok(2) => predefined_input().unwrap(),
+        Ok(2) => predefined_input::predefined_input().unwrap(),
         Ok(3) => [[1, 0, 1, 1, 1], [1, 0, 1, 0, 1], [1, 1, 1, 0, 0]],
         _ => {
             println!("Invalid input mode");
