@@ -70,7 +70,7 @@ fn get_user_char() -> char {
 fn get_user_selected_predefined_output() -> [[u8; 5]; 3] {
     let index = get_user_char();
     let output = predefiened_output::get_predefined(index);
-    visualise(output);
+    visualise(&output);
     return output;
 }
 
@@ -117,7 +117,7 @@ fn input() -> io::Result<[[u8; 5]; 3]> {
             }
         }
     }
-    visualise(arr);
+    visualise(&arr);
     Ok(arr)
 }
 
@@ -140,7 +140,7 @@ fn map(x: u8) -> char {
 ///
 /// # Arguments
 /// * `arr` - A 2D array representing the bin contents.
-fn visualise(arr: [[u8; 5]; 3]) {
+fn visualise(arr: &[[u8; 5]; 3]) {
     println!("Real world representation:");
     for i in 0..5 {
         for j in 0..3 {
