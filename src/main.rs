@@ -9,6 +9,7 @@ mod logging;
 mod motors;
 mod sorting;
 mod state_machine;
+mod predefiened_output;
 
 use crate::color_sensor::get_nwst_color;
 use crate::motors::{start_conveyor, stop_conveyor};

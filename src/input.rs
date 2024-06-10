@@ -1,12 +1,18 @@
 use std::io::{self, Write};
+use crate::predefiened_output;
 
+/// Gets the input based on the user's choice of mode.
+///
+/// # Returns
+/// A 2D array representing the bin contents.
+/// * `[[u8; 5]; 3]` - The bin contents.
 pub fn get_input() -> [[u8; 5]; 3] {
     println!("<------------------------------>");
     let mode = get_mode();
     match mode {
         Ok(1) => input().unwrap(),
-        // Ok(2) => predefined_input().unwrap(),
-        Ok(3) => [[1, 0, 1, 1, 1], [1, 0, 1, 0, 1], [1, 1, 1, 0, 0]],
+        Ok(2) => get_user_selected_predefined_output(),
+        Ok(3) => [[1, 0, 1, 1, 1],[1, 0, 1, 0, 1],[1, 1, 1, 0, 1]],
         _ => {
             println!("Invalid input mode");
             return get_input();
@@ -14,6 +20,10 @@ pub fn get_input() -> [[u8; 5]; 3] {
     }
 }
 
+/// Asks the user if they want to continue.
+///
+/// # Returns
+/// * `true` if the user wants to continue, otherwise `false`.
 pub fn continue_input() -> bool {
     println!("Do you want to continue? (y/n)");
     let mut cont = String::new();
@@ -30,6 +40,44 @@ pub fn continue_input() -> bool {
     }
 }
 
+/// Prompts the user to select a character or number for the robot to display.
+/// Ensures the input is either a number or a capital letter.
+///
+/// # Returns
+/// * A `char` representing the user's choice.
+fn get_user_char() -> char {
+    println!("Select a number or a capital letter you would like the robot to display:");
+    loop {
+        let mut input = String::new();
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Failed to read line");
+        let input = input.trim();
+        if let Some(c) = input.chars().next() {
+            if c.is_ascii_digit() || (c.is_ascii_uppercase() && c.is_alphabetic()) {
+                return c;
+            }
+        }
+        println!("Invalid input. Please enter a number (0-9) or a capital letter (A-Z).");
+    }
+}
+
+/// Gets a predefined output from the JSON file based on the user's selected character.
+///
+/// # Returns
+/// * A 2D array representing the bin contents.
+/// * `[[u8; 5]; 3]` - The bin contents.
+fn get_user_selected_predefined_output() -> [[u8; 5]; 3] {
+    let index = get_user_char();
+    let output = predefiened_output::get_predefined(index);
+    visualise(output);
+    return output;
+}
+
+/// Prompts the user to select an input mode.
+///
+/// # Returns
+/// * `io::Result<i32>` - The selected mode.
 fn get_mode() -> io::Result<i32> {
     println!("Enter input mode: ");
     println!("1. Custom input");
@@ -41,6 +89,10 @@ fn get_mode() -> io::Result<i32> {
     Ok(mode)
 }
 
+/// Prompts the user to input the bin contents.
+///
+/// # Returns
+/// * `io::Result<[[u8; 5]; 3]>` - The bin contents.
 fn input() -> io::Result<[[u8; 5]; 3]> {
     println!("<------------------------------>");
     println!("Color values: 0 - white, 1 - black");
@@ -65,21 +117,35 @@ fn input() -> io::Result<[[u8; 5]; 3]> {
             }
         }
     }
-    // Print the array
+    visualise(arr);
+    Ok(arr)
+}
+
+/// Maps a binary value to a corresponding character for visualization.
+///
+/// # Arguments
+/// * `x` - A binary value (0 or 1).
+///
+/// # Returns
+/// * A `char` representing the visual representation of the binary value.
+fn map(x: u8) -> char {
+    match x {
+        0 => 'O',
+        1 => 'X',
+        _ => ' ',
+    }
+}
+
+/// Visualizes the bin contents in a readable format.
+///
+/// # Arguments
+/// * `arr` - A 2D array representing the bin contents.
+fn visualise(arr: [[u8; 5]; 3]) {
     println!("Real world representation:");
     for i in 0..5 {
         for j in 0..3 {
             print!("{} ", map(arr[j][4 - i]));
         }
         println!(); // Print a newline at the end of each row
-    }
-    Ok(arr)
-}
-
-fn map(x: u8) -> char {
-    match x {
-        0 => 'O',
-        1 => 'X',
-        _ => ' ',
     }
 }
