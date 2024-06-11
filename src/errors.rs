@@ -46,6 +46,11 @@ pub fn check_color_sensor_erroneous(color_values: &(i32, i32, i32)) -> bool {
     return false;
 }
 
+/// Function to check if the robot button has been pressed.
+/// 
+/// # Returns
+/// 
+/// A boolean value representing if the button has been pressed.
 pub fn check_button_pressed() -> Result<bool, rppal::gpio::Error>{
     const GPIO_BUTTON: u8 = 11;
     let buttonpin = Gpio::new()?.get(GPIO_BUTTON)?.into_input_pullup();
