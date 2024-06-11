@@ -7,9 +7,9 @@ mod errors;
 mod input;
 mod logging;
 mod motors;
+mod predefiened_output;
 mod sorting;
 mod state_machine;
-mod predefiened_output;
 
 use crate::color_sensor::get_nwst_color;
 use crate::motors::{start_conveyor, stop_conveyor};
@@ -159,7 +159,8 @@ fn main() {
 
                 info!("Disk color: {:?}", color);
                 println!("Disk color: {:?}", color);
-                if color == 2 || color == -1 { // color is unknown
+                if color == 2 || color == -1 {
+                    // color is unknown
                     warn!("Disc color unknown, reanalyzing");
                     println!("Disc color unknown, reanalyzing");
                     let event = Event::DiscUnknown;
@@ -233,8 +234,13 @@ fn main() {
 
                 let _ = error_lcd::display_error(&error);
 
-                // wait for the press of a button to continue
-                // TODO: implement button press
+                // wait for a button press to continue
+                loop {
+                    if errors::check_button_pressed().unwrap() {
+                        break;
+                    }
+                    std::thread::sleep(std::time::Duration::from_millis(100));
+                }
 
                 let _ = error_lcd::display_clear();
                 std::thread::sleep(std::time::Duration::from_millis(10000)); // remove when button press is implemented
@@ -253,8 +259,8 @@ fn main() {
                 println!("Reanalyzing disc color");
                 start_conveyor_control(&running);
                 std::thread::sleep(std::time::Duration::from_millis(1000));
-		        println!("Here");
-		        stop_conveyor_control(&running);
+                println!("Here");
+                stop_conveyor_control(&running);
                 let color_values = get_nwst_color(&rx_color);
                 // check for erroneous color detection
                 if errors::check_color_sensor_erroneous(&color_values) {
@@ -266,14 +272,15 @@ fn main() {
                     machine.transition(event);
                 }
                 let color = detect_color::logic(color_values);
-                if color == 1 { // ERROR 21
+                if color == 1 {
+                    // ERROR 21
                     error!("ERROR21: Error during color detection, moving to error state");
                     println!("ERROR21: Error during color detection, moving to error state");
                     machine.shared_state.disc_color = color;
                     machine.shared_state.error = 21;
                     let event = Event::Error;
                     machine.transition(event);
-		        }
+                }
                 if sorting::check_needed(&machine.shared_state.bin_status, output.clone(), &color) {
                     info!("Disc needed after reanalysis, sorting");
                     println!("Disc needed after reanalysis, sorting");

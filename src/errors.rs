@@ -2,6 +2,7 @@
 use crate::detect_color;
 use crate::error_lcd;
 use log::error;
+use rppal::gpio::Gpio;
 
 /// Function that checks if the bins are full,
 /// which means the robot completed it's task.
@@ -43,4 +44,14 @@ pub fn check_color_sensor_erroneous(color_values: &(i32, i32, i32)) -> bool {
         return true;
     }
     return false;
+}
+
+pub fn check_button_pressed() -> Result<bool, rppal::gpio::Error>{
+    const GPIO_BUTTON: u8 = 11;
+    let buttonpin = Gpio::new()?.get(GPIO_BUTTON)?.into_input_pullup();
+
+    if buttonpin.is_high(){
+        return Ok(true);
+    }
+    return Ok(false);
 }
