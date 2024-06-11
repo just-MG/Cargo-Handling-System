@@ -32,7 +32,7 @@ fn main() {
     info!("Input received: {:?}", output);
     println!("Input received: {:?}", output);
 
-    //Conveyor Thread shit
+    // Initialize the conveyor belt control
     let running = Arc::new(Mutex::new(false));
     let running_clone = Arc::clone(&running);
 
