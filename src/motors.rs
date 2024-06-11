@@ -132,6 +132,29 @@ pub fn sort_arm(bin: i32) -> () {
     }
 }
 
+pub fn flush_arms(bin: i32) {
+    thread::spawn(move || {
+        std::thread::sleep(Duration::from_secs(5));
+        match bin {
+            0 => {
+                let _ = move_sort_arm_1(0);
+                thread::sleep(Duration::from_millis(200));
+            } // Move arm 1 to left,
+            1 => {
+                let _ = move_sort_arm_1(1); // Move arm 1 to left
+                thread::sleep(Duration::from_millis(200));
+            }
+            2 => {
+                let _ = move_sort_arm_1(1); // Move arm 1 to left
+                thread::sleep(Duration::from_millis(1000));
+                let _ = move_sort_arm_2(1); // Move arm 2 to left
+                thread::sleep(Duration::from_millis(200));
+            }
+            _ => (),
+        }
+    });
+}
+
 /// Discards an item by moving the discard motors.
 ///
 /// # Returns

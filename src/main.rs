@@ -207,6 +207,7 @@ fn main() {
                     &machine.shared_state.disc_color,
                 );
                 motors::sort_arm(bin);
+                motors::flush_arms(bin);
                 machine.shared_state.bin_status[bin as usize].push(machine.shared_state.disc_color);
                 // check if the robot completed its task
                 errors::check_completion(&machine.shared_state.bin_status);
