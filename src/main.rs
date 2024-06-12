@@ -75,7 +75,7 @@ fn main() {
     println!("Initializing color detection");
     let (tx_color, rx_color) = mpsc::channel();
     color_sensor::initialize_serial(tx_color); // Start the serial connection in a separate thread
-    std::thread::sleep(std::time::Duration::from_secs(3)); // Wait for the serial connection to initialize
+    std::thread::sleep(std::time::Duration::from_secs(2)); // Wait for the serial connection to initialize
     info!("Serial connection initialized");
     println!("Serial connection initialized");
 
@@ -83,10 +83,10 @@ fn main() {
     let mut machine = state_machine::StateMachine::new();
 
     // Robot IRL variables - all time in milliseconds
-    let positioning_time: u64 = 2750; // time for the conveyor belt to position the disc under the color sensor
+    let positioning_time: u64 = 6000; // time for the conveyor belt to position the disc under the color sensor
     let discarding_time: u64 = 10; // time for the discarding arm to move into position
-    let conveyor_discard_time: u64 = 500; // time for the conveyor belt to move the disc to the discarding area
-    let distance_sensor_threshold: f32 = 2.5; // distance sensor threshold for detecting an object
+    let conveyor_discard_time: u64 = 3501; // time for the conveyor belt to move the disc to the discarding area
+    let distance_sensor_threshold: f32 = 2.2; // distance sensor threshold for detecting an object
     let distance_detection_rate: u64 = 75; // wait time between each distance sensor reading
     let distance_detection_samples: u64 = 5; // number of samples taken and averaged by the distance sensor
 
@@ -101,6 +101,7 @@ fn main() {
                 info!("Conveyor started for detecting disc");
                 println!("Conveyor started for detecting disc");
                 let _ = motors::separate_input(0);
+                let mut is_error: bool = false;
                 loop {
                     let distance = distance_sensor::get_distance(
                         distance_detection_rate.clone(),
@@ -122,12 +123,19 @@ fn main() {
                         error!("ERROR31: Error in distance detection, moving to error state");
                         println!("ERROR31: Error in distance detection, moving to error state");
                         machine.shared_state.error = 31;
+                        is_error = true;
                         let event = Event::Error;
                         machine.transition(event);
+                    }
+                    if is_error {
+                        break;
                     }
                     std::thread::sleep(std::time::Duration::from_millis(
                         distance_detection_rate.clone(),
                     ));
+                }
+                if is_error {
+                    continue;
                 }
                 let event = Event::DiscDetected;
                 info!("Transitioning to Positioning due to disc detection");
@@ -154,6 +162,7 @@ fn main() {
                     machine.shared_state.error = 25;
                     let event = Event::Error;
                     machine.transition(event);
+		            continue;
                 }
                 let color = detect_color::logic(color_values);
 
@@ -217,6 +226,7 @@ fn main() {
                 machine.transition(event);
             }
             State::Error => {
+		        stop_conveyor_control(&running);
                 let error: u32 = machine.shared_state.error as u32;
                 let restart_errors = [21, 31]; // codes of the errors that require a restart
                 let callback_errors = [25]; // codes of the errors that require a callback
@@ -238,18 +248,19 @@ fn main() {
                 // wait for a button press to continue
                 loop {
                     if errors::check_button_pressed().unwrap() {
+			            print!("Button has been pressed. ");
                         break;
                     }
                     std::thread::sleep(std::time::Duration::from_millis(100));
                 }
 
                 let _ = error_lcd::display_clear();
-                std::thread::sleep(std::time::Duration::from_millis(10000)); // remove when button press is implemented
-
                 if restart_errors.contains(&error) {
+		            println!("Restarting machine...");
                     let event = Event::Restart;
                     machine.transition(event);
                 } else {
+		            println!("Going back to previous state...");
                     let event = Event::ErrorCallBack;
                     machine.transition(event);
                 }
@@ -271,9 +282,10 @@ fn main() {
                     machine.shared_state.error = 25;
                     let event = Event::Error;
                     machine.transition(event);
+		            continue;
                 }
                 let color = detect_color::logic(color_values);
-                if color == 1 {
+                if color == -1 {
                     // ERROR 21
                     error!("ERROR21: Error during color detection, moving to error state");
                     println!("ERROR21: Error during color detection, moving to error state");
@@ -281,6 +293,7 @@ fn main() {
                     machine.shared_state.error = 21;
                     let event = Event::Error;
                     machine.transition(event);
+		            continue;
                 }
                 if sorting::check_needed(&machine.shared_state.bin_status, output.clone(), &color) {
                     info!("Disc needed after reanalysis, sorting");
@@ -288,11 +301,13 @@ fn main() {
                     machine.shared_state.disc_color = color;
                     let event = Event::DiscNeeded;
                     machine.transition(event);
+		            continue;
                 } else {
                     info!("Disc not needed after reanalysis, discarding");
                     println!("Disc not needed after reanalysis, discarding");
                     let event = Event::DiscNotNeeded;
                     machine.transition(event);
+		            continue;
                 }
             }
         }
