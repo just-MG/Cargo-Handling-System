@@ -31,56 +31,61 @@ impl StateMachine {
         use State::*;
         match (self.current_state, event) {
             (Detecting, Event::DiscDetected) => {
-                self.current_state = Positioning;
                 self.shared_state.prev_state = self.current_state;
+                self.current_state = Positioning;
             }
             (Positioning, Event::DiscPositioned) => {
-                self.current_state = Analyzing;
                 self.shared_state.prev_state = self.current_state;
+                self.current_state = Analyzing;
             }
             (Analyzing, Event::DiscNeeded) => {
-                self.current_state = Sorting;
                 self.shared_state.prev_state = self.current_state;
+                self.current_state = Sorting;
             }
             (Analyzing, Event::DiscNotNeeded) => {
-                self.current_state = Discarding;
                 self.shared_state.prev_state = self.current_state;
+                self.current_state = Discarding;
             }
             (Analyzing, Event::DiscUnknown) => {
-                self.current_state = Reanalyzing;
                 self.shared_state.prev_state = self.current_state;
+                self.current_state = Reanalyzing;
             }
             (Discarding, Event::DiscDiscarded) => {
-                self.current_state = Detecting;
                 self.shared_state.prev_state = self.current_state;
+                self.current_state = Detecting;
             }
             (Sorting, Event::DiscSorted) => {
+                self.shared_state.prev_state = self.current_state;
                 self.current_state = Detecting;
-                self.shared_state.prev_state = self.current_state;
-            }
-            (Reanalyzing, Event::DiscUnknown) => {
-                self.current_state = Discarding;
-                self.shared_state.prev_state = self.current_state;
             }
             (Reanalyzing, Event::DiscNeeded) => {
-                self.current_state = Sorting;
                 self.shared_state.prev_state = self.current_state;
+                self.current_state = Sorting;
             }
             (Reanalyzing, Event::DiscNotNeeded) => {
-                self.current_state = Discarding;
                 self.shared_state.prev_state = self.current_state;
+                self.current_state = Discarding;
             }
             (Error, Event::ErrorCallBack) => {
+		    let temp = self.current_state;
                 self.current_state = self.shared_state.prev_state;
-                self.shared_state.prev_state = self.current_state;
+                self.shared_state.prev_state = temp;
             }
             (Error, Event::Restart) => {
+                self.shared_state.prev_state = self.current_state;
                 self.current_state = Detecting;
-                self.shared_state.prev_state = self.current_state;
             }
-            (_, Event::Error) => {
-                self.current_state = Error;
+            (Detecting, Event::Error) => {
                 self.shared_state.prev_state = self.current_state;
+		        self.current_state = Error;
+            }
+            (Reanalyzing, Event::Error) => {
+                self.shared_state.prev_state = self.current_state;
+                self.current_state = Error;
+            }
+            (Analyzing, Event::Error) => {
+                self.shared_state.prev_state = self.current_state;
+		        self.current_state = Error;
             }
             _ => (),
         }
