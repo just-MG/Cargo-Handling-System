@@ -89,6 +89,7 @@ fn main() {
     let distance_sensor_threshold: f32 = 2.2; // distance sensor threshold for detecting an object
     let distance_detection_rate: u64 = 75; // wait time between each distance sensor reading
     let distance_detection_samples: u64 = 5; // number of samples taken and averaged by the distance sensor
+    let timeout_time: u64 = 30000; // time to wait for a disk before moving to the error state
 
     info!("Initialization complete");
     println!("Initialization complete");
@@ -102,6 +103,7 @@ fn main() {
                 println!("Conveyor started for detecting disc");
                 let _ = motors::separate_input(0);
                 let mut is_error: bool = false;
+                let mut timeout_counter = 0;
                 loop {
                     let distance = distance_sensor::get_distance(
                         distance_detection_rate.clone(),
@@ -129,6 +131,17 @@ fn main() {
                     }
                     if is_error {
                         break;
+                    }
+                    // check for timeout
+                    timeout_counter += distance_detection_rate.clone();
+                    if timeout_counter >= timeout_time.clone() {
+                        // ERROR 11
+                        error!("ERROR11: Timeout reached, moving to error state");
+                        println!("ERROR11: Timeout reached, moving to error state");
+                        machine.shared_state.error = 11;
+                        is_error = true;
+                        let event = Event::Error;
+                        machine.transition(event);
                     }
                     std::thread::sleep(std::time::Duration::from_millis(
                         distance_detection_rate.clone(),
@@ -228,7 +241,7 @@ fn main() {
             State::Error => {
 		        stop_conveyor_control(&running);
                 let error: u32 = machine.shared_state.error as u32;
-                let restart_errors = [21, 31]; // codes of the errors that require a restart
+                let restart_errors = [21, 31, 11]; // codes of the errors that require a restart
                 let callback_errors = [25]; // codes of the errors that require a callback
 
                 if !(restart_errors.contains(&error) || callback_errors.contains(&error)) {
