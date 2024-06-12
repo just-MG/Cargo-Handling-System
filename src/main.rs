@@ -95,15 +95,15 @@ fn main() {
     println!("Initialization complete");
     info!("Starting state machine");
     println!("Starting state machine");
-    loop {
+    'main: loop {
         match &machine.current_state {
             State::Detecting => {
                 start_conveyor_control(&running);
                 info!("Conveyor started for detecting disc");
                 println!("Conveyor started for detecting disc");
                 let _ = motors::separate_input(0);
-                let mut is_error: bool = false;
                 let mut timeout_counter = 0;
+
                 loop {
                     let distance = distance_sensor::get_distance(
                         distance_detection_rate.clone(),
@@ -125,30 +125,25 @@ fn main() {
                         error!("ERROR31: Error in distance detection, moving to error state");
                         println!("ERROR31: Error in distance detection, moving to error state");
                         machine.shared_state.error = 31;
-                        is_error = true;
                         let event = Event::Error;
                         machine.transition(event);
-                    }
-                    if is_error {
-                        break;
+                        continue 'main;
                     }
                     // check for timeout
-                    timeout_counter += distance_detection_rate.clone();
+                    timeout_counter +=
+                        (distance_detection_rate.clone() + 1) * distance_detection_samples.clone();
                     if timeout_counter >= timeout_time.clone() {
                         // ERROR 11
                         error!("ERROR11: Timeout reached, moving to error state");
                         println!("ERROR11: Timeout reached, moving to error state");
                         machine.shared_state.error = 11;
-                        is_error = true;
                         let event = Event::Error;
                         machine.transition(event);
+                        continue 'main;
                     }
                     std::thread::sleep(std::time::Duration::from_millis(
                         distance_detection_rate.clone(),
                     ));
-                }
-                if is_error {
-                    continue;
                 }
                 let event = Event::DiscDetected;
                 info!("Transitioning to Positioning due to disc detection");
@@ -175,10 +170,9 @@ fn main() {
                     machine.shared_state.error = 25;
                     let event = Event::Error;
                     machine.transition(event);
-		            continue;
+                    continue;
                 }
                 let color = detect_color::logic(color_values);
-
                 info!("Disk color: {:?}", color);
                 println!("Disk color: {:?}", color);
                 if color == 2 || color == -1 {
@@ -239,7 +233,7 @@ fn main() {
                 machine.transition(event);
             }
             State::Error => {
-		        stop_conveyor_control(&running);
+                stop_conveyor_control(&running);
                 let error: u32 = machine.shared_state.error as u32;
                 let restart_errors = [11, 23, 31]; // codes of the errors that require a restart
                 let callback_errors = [25]; // codes of the errors that require a callback
@@ -258,11 +252,12 @@ fn main() {
                 }
 
                 let _ = error_lcd::display_error(&error);
-
+                println!("Error code: {}", error);
+                println!("Press the button to continue");
                 // wait for a button press to continue
                 loop {
                     if errors::check_button_pressed().unwrap() {
-			            print!("Button has been pressed. ");
+                        print!("Button has been pressed. ");
                         break;
                     }
                     std::thread::sleep(std::time::Duration::from_millis(100));
@@ -270,11 +265,11 @@ fn main() {
 
                 let _ = error_lcd::display_clear();
                 if restart_errors.contains(&error) {
-		            println!("Restarting machine...");
+                    println!("Restarting machine...");
                     let event = Event::Restart;
                     machine.transition(event);
                 } else {
-		            println!("Going back to previous state...");
+                    println!("Going back to previous state...");
                     let event = Event::ErrorCallBack;
                     machine.transition(event);
                 }
@@ -296,7 +291,7 @@ fn main() {
                     machine.shared_state.error = 25;
                     let event = Event::Error;
                     machine.transition(event);
-		            continue;
+                    continue;
                 }
                 let color = detect_color::logic(color_values);
                 if color == -1 {
@@ -307,7 +302,7 @@ fn main() {
                     machine.shared_state.error = 23;
                     let event = Event::Error;
                     machine.transition(event);
-		            continue;
+                    continue;
                 }
                 if sorting::check_needed(&machine.shared_state.bin_status, output.clone(), &color) {
                     info!("Disc needed after reanalysis, sorting");
@@ -315,12 +310,18 @@ fn main() {
                     machine.shared_state.disc_color = color;
                     let event = Event::DiscNeeded;
                     machine.transition(event);
-		            continue;
+                    continue;
                 } else {
                     // the color of the disk is known but it is not needed
                     if color == 0 || color == 1 {
-                        info!("Detected color: {:?} not needed after reanalysis, discarding", color);
-                        info!("Detected color: {:?} not needed after reanalysis, discarding", color);
+                        info!(
+                            "Detected color: {:?} not needed after reanalysis, discarding",
+                            color
+                        );
+                        println!(
+                            "Detected color: {:?} not needed after reanalysis, discarding",
+                            color
+                        );
                     } else {
                         // the color of the disk is not known
                         // ERROR 21
@@ -332,7 +333,7 @@ fn main() {
                     }
                     let event = Event::DiscNotNeeded;
                     machine.transition(event);
-		            continue;
+                    continue;
                 }
             }
         }
