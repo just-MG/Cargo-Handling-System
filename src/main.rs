@@ -241,7 +241,7 @@ fn main() {
             State::Error => {
 		        stop_conveyor_control(&running);
                 let error: u32 = machine.shared_state.error as u32;
-                let restart_errors = [21, 31, 11]; // codes of the errors that require a restart
+                let restart_errors = [11, 23, 31]; // codes of the errors that require a restart
                 let callback_errors = [25]; // codes of the errors that require a callback
 
                 if !(restart_errors.contains(&error) || callback_errors.contains(&error)) {
@@ -251,6 +251,7 @@ fn main() {
                     if to_continue {
                         let event = Event::Restart;
                         machine.transition(event);
+                        continue;
                     } else {
                         std::process::exit(1);
                     }
@@ -299,11 +300,11 @@ fn main() {
                 }
                 let color = detect_color::logic(color_values);
                 if color == -1 {
-                    // ERROR 21
-                    error!("ERROR21: Error during color detection, moving to error state");
-                    println!("ERROR21: Error during color detection, moving to error state");
+                    // ERROR 23
+                    error!("ERROR23: Error during color detection, moving to error state");
+                    println!("ERROR23: Error during color detection, moving to error state");
                     machine.shared_state.disc_color = color;
-                    machine.shared_state.error = 21;
+                    machine.shared_state.error = 23;
                     let event = Event::Error;
                     machine.transition(event);
 		            continue;
@@ -316,8 +317,19 @@ fn main() {
                     machine.transition(event);
 		            continue;
                 } else {
-                    info!("Disc not needed after reanalysis, discarding");
-                    println!("Disc not needed after reanalysis, discarding");
+                    // the color of the disk is known but it is not needed
+                    if color == 0 || color == 1 {
+                        info!("Detected color: {:?} not needed after reanalysis, discarding", color);
+                        info!("Detected color: {:?} not needed after reanalysis, discarding", color);
+                    } else {
+                        // the color of the disk is not known
+                        // ERROR 21
+                        info!("ERROR21: Disc color unknown after reanalysis, discarding");
+                        println!("ERROR21: Disc color unknown after reanalysis, discarding");
+                        let _ = error_lcd::display_error(&21);
+                        std::thread::sleep(std::time::Duration::from_millis(3000));
+                        let _ = error_lcd::display_clear();
+                    }
                     let event = Event::DiscNotNeeded;
                     machine.transition(event);
 		            continue;

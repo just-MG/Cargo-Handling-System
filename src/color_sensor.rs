@@ -3,6 +3,7 @@ use std::io::{self, Read};
 use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
+use crate::error_lcd::display_error;
 
 /// Initializes the serial connection to the Arduino Uno and spawns a new thread to handle the data reception.
 ///
@@ -70,7 +71,6 @@ pub fn initialize_serial(tx: mpsc::Sender<(i32, i32, i32)>) {
                             println!("Error reading from serial port: {:?}", e);
                         }
                     }
-
                     received_data.clear(); // Clear the received data vector
                     thread::sleep(Duration::from_millis(50));
 
@@ -88,7 +88,8 @@ pub fn initialize_serial(tx: mpsc::Sender<(i32, i32, i32)>) {
                 // If the serial port failed to open
                 error!("Failed to open serial port '{}'. Error: {:?}", port_name, e);
                 println!("Failed to open serial port '{}'. Error: {:?}", port_name, e);
-                ::std::process::exit(1); // Exit the program, robot cannot work without the color sensor
+                display_error(&22).unwrap(); // Display error code 22 on the LCD
+                ::std::process::exit(22); // Exit the program, robot cannot work without the color sensor
             }
         }
     });
