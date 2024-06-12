@@ -1,5 +1,5 @@
 use std::io::{self, Write};
-use crate::predefiened_output;
+use crate::predefined_output;
 
 /// Gets the input based on the user's choice of mode.
 ///
@@ -69,7 +69,7 @@ fn get_user_char() -> char {
 /// * `[[u8; 5]; 3]` - The bin contents.
 fn get_user_selected_predefined_output() -> [[u8; 5]; 3] {
     let index = get_user_char();
-    let output = predefiened_output::get_predefined(index);
+    let output = predefined_output::get_predefined(index);
     visualise(&output);
     return output;
 }

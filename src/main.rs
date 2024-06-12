@@ -7,7 +7,7 @@ mod errors;
 mod input;
 mod logging;
 mod motors;
-mod predefiened_output;
+mod predefined_output;
 mod sorting;
 mod state_machine;
 
