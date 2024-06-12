@@ -52,10 +52,10 @@ pub fn check_color_sensor_erroneous(color_values: &(i32, i32, i32)) -> bool {
 /// 
 /// A boolean value representing if the button has been pressed.
 pub fn check_button_pressed() -> Result<bool, rppal::gpio::Error>{
-    const GPIO_BUTTON: u8 = 11;
-    let buttonpin = Gpio::new()?.get(GPIO_BUTTON)?.into_input_pullup();
+    let gpio = Gpio::new()?;
+    let button_pin = gpio.get(24)?.into_input_pullup();
 
-    if buttonpin.is_high(){
+    if button_pin.is_low(){
         return Ok(true);
     }
     return Ok(false);
