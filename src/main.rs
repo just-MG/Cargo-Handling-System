@@ -149,6 +149,7 @@ fn main() {
                 info!("Transitioning to Positioning due to disc detection");
                 println!("Transitioning to Positioning due to disc detection");
                 machine.transition(event);
+                continue 'main;
             }
             State::Positioning => {
                 info!("Positioning the disc");
@@ -157,6 +158,7 @@ fn main() {
                 stop_conveyor_control(&running);
                 let event = Event::DiscPositioned;
                 machine.transition(event);
+                continue 'main;
             }
             State::Analyzing => {
                 info!("Analyzing the color of the disc");
@@ -170,7 +172,7 @@ fn main() {
                     machine.shared_state.error = 25;
                     let event = Event::Error;
                     machine.transition(event);
-                    continue;
+                    continue 'main;
                 }
                 let color = detect_color::logic(color_values);
                 info!("Disk color: {:?}", color);
@@ -181,6 +183,7 @@ fn main() {
                     println!("Disc color unknown, reanalyzing");
                     let event = Event::DiscUnknown;
                     machine.transition(event);
+                    continue 'main;
                 } else if sorting::check_needed(
                     &machine.shared_state.bin_status,
                     output.clone(),
@@ -192,11 +195,13 @@ fn main() {
                     machine.shared_state.disc_color = color;
                     let event = Event::DiscNeeded;
                     machine.transition(event);
+                    continue 'main;
                 } else {
                     info!("Disc not needed, discarding");
                     println!("Disc not needed, discarding");
                     let event = Event::DiscNotNeeded;
                     machine.transition(event);
+                    continue 'main;
                 }
             }
             State::Discarding => {
@@ -213,6 +218,7 @@ fn main() {
                 std::thread::sleep(std::time::Duration::from_millis(discarding_time.clone()));
                 let event = Event::DiscDiscarded;
                 machine.transition(event);
+                continue 'main;
             }
             State::Sorting => {
                 info!("Sorting item");
@@ -231,6 +237,7 @@ fn main() {
                 std::thread::sleep(std::time::Duration::from_millis(3000));
                 let event = Event::DiscSorted;
                 machine.transition(event);
+                continue 'main;
             }
             State::Error => {
                 stop_conveyor_control(&running);
@@ -245,7 +252,7 @@ fn main() {
                     if to_continue {
                         let event = Event::Restart;
                         machine.transition(event);
-                        continue;
+                        continue 'main;
                     } else {
                         std::process::exit(1);
                     }
@@ -268,10 +275,12 @@ fn main() {
                     println!("Restarting machine...");
                     let event = Event::Restart;
                     machine.transition(event);
+                    continue 'main;
                 } else {
                     println!("Going back to previous state...");
                     let event = Event::ErrorCallBack;
                     machine.transition(event);
+                    continue 'main;
                 }
             }
             State::Reanalyzing => {
@@ -291,7 +300,7 @@ fn main() {
                     machine.shared_state.error = 25;
                     let event = Event::Error;
                     machine.transition(event);
-                    continue;
+                    continue 'main;
                 }
                 let color = detect_color::logic(color_values);
                 if color == -1 {
@@ -302,7 +311,7 @@ fn main() {
                     machine.shared_state.error = 23;
                     let event = Event::Error;
                     machine.transition(event);
-                    continue;
+                    continue 'main;
                 }
                 if sorting::check_needed(&machine.shared_state.bin_status, output.clone(), &color) {
                     info!("Disc needed after reanalysis, sorting");
@@ -310,7 +319,7 @@ fn main() {
                     machine.shared_state.disc_color = color;
                     let event = Event::DiscNeeded;
                     machine.transition(event);
-                    continue;
+                    continue 'main;
                 } else {
                     // the color of the disk is known but it is not needed
                     if color == 0 || color == 1 {
@@ -333,7 +342,7 @@ fn main() {
                     }
                     let event = Event::DiscNotNeeded;
                     machine.transition(event);
-                    continue;
+                    continue 'main;
                 }
             }
         }
