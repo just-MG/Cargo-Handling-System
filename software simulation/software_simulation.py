@@ -169,7 +169,7 @@ while True:
                     print("Disk cannot be placed in any bin. Discarding.")
                     continue
                 print()
-                print(f"Next {disk_color_str} disk goes to bin {bin_no+1}")
+                print(f"Next {disk_color_str} disk goes to bin {bin_no}")
                 robot.input_disk(disk_color, bin_no)
                 robot.visualize()
             except ValueError:
